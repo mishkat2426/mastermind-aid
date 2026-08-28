@@ -32,7 +32,7 @@ export function App() {
   // Cart State (Persisted in localStorage)
   const [cart, setCart] = useState<Course[]>(() => {
     try {
-      const saved = localStorage.getItem('coursekori_cart');
+      const saved = localStorage.getItem('mastermindaid_cart');
       return saved ? JSON.parse(saved) : [];
     } catch (e) {
       return [];
@@ -60,7 +60,7 @@ export function App() {
   // Sync Cart to LocalStorage
   useEffect(() => {
     try {
-      localStorage.setItem('coursekori_cart', JSON.stringify(cart));
+      localStorage.setItem('mastermindaid_cart', JSON.stringify(cart));
     } catch (e) {
       console.error('Failed to save cart:', e);
     }
@@ -111,7 +111,7 @@ export function App() {
 
   const handlePaymentSuccess = () => {
     handleClearCart();
-    triggerToast('🎉 Enrollment Successful! Welcome to Course Kori.');
+    triggerToast('🎉 Enrollment Successful! Welcome to Mastermind Aid.');
   };
 
   const handleScrollToCourses = () => {
@@ -132,7 +132,7 @@ export function App() {
 
       {/* Toast Notification Popup */}
       {toastMessage && (
-        <div className="fixed bottom-6 left-6 z-50 bg-[#0A192F] text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-brand-400 text-xs sm:text-sm font-bold flex items-center gap-2 animate-in slide-in-from-bottom-5 duration-300">
+        <div className="fixed bottom-6 left-6 z-50 bg-[#0A192F] text-[#FFFFFF] px-5 py-3.5 rounded-2xl shadow-2xl border border-brand-400 text-xs sm:text-sm font-bold flex items-center gap-2 animate-in slide-in-from-bottom-5 duration-300">
           <span>{toastMessage}</span>
         </div>
       )}

@@ -154,7 +154,7 @@ export const COURSES: Course[] = [
       {
         sectionTitle: 'Module 1: Introduction & Environment Setup',
         lessons: [
-          { title: 'Welcome to WordPress Plugin Development', duration: '12:40', isPreview: true },
+          { title: 'Welcome to Mastermind Aid Academy', duration: '12:40', isPreview: true },
           { title: 'Setting Up Localhost (XAMPP & LocalWP)', duration: '18:15', isPreview: true },
           { title: 'Understanding Plugin File Structure & Headers', duration: '22:10' }
         ]
@@ -400,7 +400,7 @@ export const TESTIMONIALS: Testimonial[] = [
     avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
     rating: 5,
     timeAgo: '2 months ago',
-    comment: 'Course Kori-এর ওয়ার্ডপ্রেস প্লাগইন ডেভেলপমেন্ট কোর্সটি সত্যি অসাধারণ! স্যারের বোঝানোর কৌশল এবং প্র্যাক্টিক্যাল প্রজেক্টগুলো আমার ফ্রিল্যান্সিং ক্যারিয়ার পুরোপুরি বদলে দিয়েছে। এখন আমি ফাইবারে নিয়মিত কাজ পাচ্ছি।',
+    comment: 'Mastermind Aid-এর ওয়ার্ডপ্রেস প্লাগইন ডেভেলপমেন্ট কোর্সটি সত্যি অসাধারণ! স্যারের বোঝানোর কৌশল এবং প্র্যাক্টিক্যাল প্রজেক্টগুলো আমার ফ্রিল্যান্সিং ক্যারিয়ার পুরোপুরি বদলে দিয়েছে। এখন আমি ফাইবারে নিয়মিত কাজ পাচ্ছি।',
     courseTaken: 'WordPress Plugin Development Mastery 2026'
   },
   {
@@ -410,7 +410,7 @@ export const TESTIMONIALS: Testimonial[] = [
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
     rating: 5,
     timeAgo: '1 month ago',
-    comment: ' digital marketing and meta pixel setup concept was totally clear to me through this platform. The free courses are even better than paid courses in other institutes!',
+    comment: 'Digital marketing and Meta Pixel setup concept was totally cleared to me through Mastermind Aid. The free courses are even better than paid courses in other institutes!',
     courseTaken: 'Digital Marketing & Ads Specialization'
   },
   {
@@ -420,19 +420,19 @@ export const TESTIMONIALS: Testimonial[] = [
     avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=150&q=80',
     rating: 5,
     timeAgo: '3 weeks ago',
-    comment: 'Course Kori provides the highest quality e-learning content in Bangladesh. Direct instructor support in the private group is the best part.',
+    comment: 'Mastermind Aid provides the highest quality e-learning content in Bangladesh. Direct instructor support in the private group is the best part.',
     courseTaken: 'Advanced SEO & Content Ranking'
   }
 ];
 
 export const SEO_FAQ_ITEMS = [
   {
-    question: 'Why is Course Kori considered the best online course platform in Bangladesh?',
-    answer: 'Course Kori focuses on high quality, real-world skill development without fluffy theory. All courses are curated by industry experts like Hasibul Islam, offering lifetime access, project files, and dedicated student community support.'
+    question: 'Why is Mastermind Aid considered the premier e-learning platform in Bangladesh?',
+    answer: 'Mastermind Aid focuses on high-quality, real-world skill development without fluffy theory. All courses are curated by industry experts like Hasibul Islam, offering lifetime access, project files, and dedicated student community support.'
   },
   {
-    question: 'Are there completely free courses available on Course Kori?',
-    answer: 'Yes! Course Kori offers premium-quality free courses in WordPress Plugin Development, Freelancing on Fiverr & Upwork, and Responsive Web Design so students can start learning without financial barrier.'
+    question: 'Are there completely free courses available on Mastermind Aid?',
+    answer: 'Yes! Mastermind Aid offers premium-quality free courses in WordPress Plugin Development, Freelancing on Fiverr & Upwork, and Responsive Web Design so students can start learning without financial barrier.'
   },
   {
     question: 'How do I access course materials and videos after enrolling?',
@@ -440,6 +440,6 @@ export const SEO_FAQ_ITEMS = [
   },
   {
     question: 'Do I get a certificate after completing a course?',
-    answer: 'Yes, after completing 100% of the course lectures and submitting practical assignments, you receive a verified Certificate of Completion from Course Kori.'
+    answer: 'Yes, after completing 100% of the course lectures and submitting practical assignments, you receive a verified Certificate of Completion from Mastermind Aid.'
   }
 ];

@@ -44,7 +44,7 @@ export const StatsCounter: React.FC = () => {
         
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-2">
           <span className="text-xs font-bold uppercase tracking-widest text-brand-400">
-            Trusted by Course Kori
+            Trusted by Mastermind Aid
           </span>
           <h2 className="text-3xl sm:text-5xl font-black text-white">
             Our Achievements & Milestones

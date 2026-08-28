@@ -1,86 +1,104 @@
 import React, { useState } from 'react';
-import { ChevronDown, HelpCircle, BookOpen, CheckCircle } from 'lucide-react';
+import { ChevronDown, HelpCircle, BookOpen, ShieldCheck, Sparkles } from 'lucide-react';
 import { SEO_FAQ_ITEMS } from '../data/coursesData';
 
 export const SeoContentSection: React.FC = () => {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
+  const toggleFaq = (idx: number) => {
+    setOpenFaqIndex(openFaqIndex === idx ? null : idx);
+  };
+
   return (
     <section id="about" className="py-20 bg-white border-t border-slate-200/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Two Column Layout: Deep Informational Copy & FAQ */}
         <div className="grid lg:grid-cols-12 gap-12 items-start">
           
-          {/* Left Column: Copy about Course Kori */}
+          {/* Left Column: Copy about Mastermind Aid */}
           <div className="lg:col-span-6 space-y-6">
-            <span className="text-xs font-extrabold uppercase tracking-wider text-brand-600 bg-brand-50 px-3.5 py-1.5 rounded-full">
-              About Course Kori Platform
-            </span>
+            <div className="space-y-2">
+              <span className="text-xs font-extrabold uppercase tracking-wider text-brand-600 bg-brand-50 px-3.5 py-1 rounded-full">
+                About Mastermind Aid Platform
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-black text-[#0A192F] leading-tight">
+                Best Online Course in Bangladesh – Learn Smart with Mastermind Aid
+              </h2>
+            </div>
 
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0F2B5A] leading-tight">
-              Best Online Course in Bangladesh – Learn Smart with Course Kori
-            </h2>
-
-            <div className="prose prose-slate text-sm text-slate-600 space-y-4 leading-relaxed">
+            <div className="prose prose-slate text-xs sm:text-sm text-slate-600 space-y-4 leading-relaxed font-normal">
               <p>
-                <strong>Course Kori (কোর্স করি)</strong> is Bangladesh's premier e-learning platform committed to delivering top-tier online education in <strong>WordPress Plugin Development, Full-Stack Web Development, Digital Marketing, Meta Ads, SEO, and Freelancing</strong>.
+                <strong>Mastermind Aid (মাসটারমাইন্ড এইড)</strong> is Bangladesh's premier e-learning platform committed to delivering top-tier online education in <strong>WordPress Plugin Development, Full-Stack Web Development, Digital Marketing, Meta Ads, SEO, and Freelancing</strong>.
+              </p>
+              
+              <p>
+                Our mission is to empower students, job seekers, and freelancers with industry-relevant, practical skills that translate directly into marketplace success on Fiverr, Upwork, and local IT agencies.
               </p>
 
-              <p className="bg-brand-50/70 p-4 rounded-2xl border border-brand-200 text-slate-800 font-medium">
-                🇧🇩 আমাদের লক্ষ্য হলো বাংলাদেশের তরুণ ও শিক্ষার্থীদের বিনামূল্যে এবং সাশ্রয়ী মূল্যে গ্লোবাল কোয়ালিটির আইটি কোর্স প্রদান করা, যেন তারা ঘরে বসেই ফ্রিল্যান্সিং ও আইটি ক্যারিয়ার গড়তে পারে।
-              </p>
-
               <p>
-                Unlike generic online tutorials, every course on Course Kori is structured around <strong>practical projects</strong>. Students gain access to lifetime HD video lessons, downloadable source code, private mentor support groups, and career guidance for Fiverr and Upwork.
+                Unlike generic online tutorials, every course on Mastermind Aid is structured around <strong>practical projects</strong>. Students gain access to lifetime HD video lessons, downloadable source code, private mentor support groups, and career guidance for Fiverr and Upwork.
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-3 pt-2">
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80">
-                <div className="text-brand-600 font-bold text-base">100% Practical</div>
-                <div className="text-xs text-slate-500 mt-0.5">Real projects without theory waste</div>
+            <div className="grid sm:grid-cols-2 gap-4 pt-2">
+              <div className="bg-brand-50 p-4 rounded-2xl border border-brand-100 space-y-1">
+                <div className="flex items-center gap-2 text-brand-600 font-extrabold text-xs">
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>100% Practical Curriculum</span>
+                </div>
+                <p className="text-[11px] text-slate-500">Real-world coding & digital marketing projects.</p>
               </div>
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80">
-                <div className="text-brand-600 font-bold text-base">Lifetime Support</div>
-                <div className="text-xs text-slate-500 mt-0.5">24/7 dedicated mentor assistance</div>
+
+              <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 space-y-1">
+                <div className="flex items-center gap-2 text-amber-700 font-extrabold text-xs">
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  <span>Lifetime Support Lounge</span>
+                </div>
+                <p className="text-[11px] text-slate-500">Ask questions directly in private student community.</p>
               </div>
             </div>
+
           </div>
 
-          {/* Right Column: FAQ Accordion */}
+          {/* Right Column: Interactive FAQ Accordion */}
           <div className="lg:col-span-6 space-y-6">
-            <div className="flex items-center gap-2 text-[#0F2B5A]">
-              <HelpCircle className="w-6 h-6 text-brand-500" />
-              <h3 className="text-2xl font-bold">Frequently Asked Questions</h3>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-brand-600 font-extrabold text-xs uppercase tracking-wider">
+                <HelpCircle className="w-4 h-4" />
+                <span>Frequently Asked Questions</span>
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-black text-[#0A192F]">
+                Got Questions? We Have Answers
+              </h3>
             </div>
 
-            <div className="space-y-4">
-              {SEO_FAQ_ITEMS.map((item, idx) => {
-                const isOpen = openFaqIndex === idx;
-
-                return (
-                  <div
-                    key={idx}
-                    className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50 hover:bg-slate-50 transition"
+            <div className="space-y-3">
+              {SEO_FAQ_ITEMS.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden transition-all duration-200"
+                >
+                  <button
+                    onClick={() => toggleFaq(idx)}
+                    className="w-full p-4 sm:p-5 text-left font-extrabold text-xs sm:text-sm text-[#0A192F] flex items-center justify-between gap-4 hover:bg-slate-100 transition"
                   >
-                    <button
-                      onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
-                      className="w-full text-left p-5 font-bold text-sm sm:text-base text-[#0F2B5A] flex items-center justify-between gap-4"
-                    >
-                      <span>{item.question}</span>
-                      <ChevronDown className={`w-5 h-5 text-brand-500 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-                    </button>
+                    <span>{item.question}</span>
+                    <ChevronDown
+                      className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+                        openFaqIndex === idx ? 'rotate-180 text-brand-600' : ''
+                      }`}
+                    />
+                  </button>
 
-                    {isOpen && (
-                      <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 bg-white">
-                        {item.answer}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                  {openFaqIndex === idx && (
+                    <div className="px-4 sm:px-5 pb-5 text-xs text-slate-600 leading-relaxed font-medium border-t border-slate-200/60 pt-3 bg-white">
+                      {item.answer}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
+
           </div>
 
         </div>

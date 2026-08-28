@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, Trash2, ShoppingBag, ArrowRight, Tag, Check, Smartphone, ShieldCheck } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ShoppingBag, X, Trash2, Tag, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Course } from '../data/coursesData';
 
 interface CartDrawerProps {
@@ -20,45 +21,54 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onOpenPaymentModal,
 }) => {
   const [couponCode, setCouponCode] = useState('');
-  const [discountPercent, setDiscountPercent] = useState<number>(0);
-  const [couponMessage, setCouponMessage] = useState<string | null>(null);
+  const [appliedDiscount, setAppliedDiscount] = useState(0);
+  const [couponError, setCouponError] = useState('');
+  const [couponSuccess, setCouponSuccess] = useState('');
 
   if (!isOpen) return null;
 
-  const rawSubtotal = cartItems.reduce((sum, item) => sum + item.price, 0);
-  const discountAmount = (rawSubtotal * discountPercent) / 100;
-  const totalPrice = Math.max(0, rawSubtotal - discountAmount);
+  const rawSubtotal = cartItems.reduce((acc, item) => acc + item.price, 0);
+  const discountAmount = (rawSubtotal * appliedDiscount) / 100;
+  const finalTotal = Math.max(0, rawSubtotal - discountAmount);
 
   const handleApplyCoupon = (e: React.FormEvent) => {
     e.preventDefault();
-    if (couponCode.trim().toUpperCase() === 'COURSEKORI50') {
-      setDiscountPercent(50);
-      setCouponMessage('🎉 Promo Code COURSEKORI50 Applied! 50% OFF Unlocked.');
+    setCouponError('');
+    setCouponSuccess('');
+
+    const cleanCode = couponCode.trim().toUpperCase();
+    if (cleanCode === 'MASTERMIND50' || cleanCode === 'COURSEKORI50') {
+      setAppliedDiscount(50);
+      setCouponSuccess('50% Discount Coupon Applied Successfully! 🎉');
+    } else if (cleanCode === '') {
+      setCouponError('Please enter a coupon code.');
     } else {
-      setCouponMessage('❌ Invalid coupon. Try using code: COURSEKORI50');
+      setCouponError('Invalid coupon code. Try code: MASTERMIND50');
     }
   };
 
-  const handleProceedToPayment = () => {
-    onClose();
-    onOpenPaymentModal(totalPrice);
-  };
-
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex justify-end">
         
-        <div className="w-screen max-w-md bg-white shadow-2xl border-l border-slate-200 flex flex-col">
-          
+        <motion.div
+          initial={{ x: '100%' }}
+          animate={{ x: 0 }}
+          exit={{ x: '100%' }}
+          transition={{ type: 'spring', damping: 25, stiffness: 280 }}
+          className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between border-l border-slate-200"
+        >
           {/* Header */}
-          <div className="bg-[#0A192F] text-white p-6 flex items-center justify-between">
+          <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-[#0A192F] text-white">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-brand-500 flex items-center justify-center">
-                <ShoppingBag className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-brand-500 text-white flex items-center justify-center font-bold">
+                <ShoppingBag className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="text-lg font-black">Your Shopping Cart</h3>
-                <p className="text-xs text-slate-300">{cartItems.length} item(s) selected</p>
+                <p className="text-xs text-slate-300">
+                  {cartItems.length} {cartItems.length === 1 ? 'course' : 'courses'} selected
+                </p>
               </div>
             </div>
 
@@ -70,125 +80,129 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             </button>
           </div>
 
-          {/* Cart Body Items */}
-          {cartItems.length === 0 ? (
-            <div className="flex-1 p-8 text-center flex flex-col items-center justify-center space-y-4">
-              <div className="w-20 h-20 bg-brand-50 rounded-full text-brand-500 flex items-center justify-center">
-                <ShoppingBag className="w-10 h-10" />
+          {/* Cart Item List */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            {cartItems.length === 0 ? (
+              <div className="text-center py-16 space-y-4">
+                <div className="w-20 h-20 bg-brand-50 text-brand-400 rounded-full flex items-center justify-center mx-auto">
+                  <ShoppingBag className="w-10 h-10" />
+                </div>
+                <h4 className="text-lg font-black text-[#0A192F]">Your Cart is Empty</h4>
+                <p className="text-xs text-slate-500 max-w-xs mx-auto">
+                  Explore our premium & free courses and start building your IT career today!
+                </p>
               </div>
-              <h4 className="text-xl font-bold text-[#0A192F]">Your Cart is Empty</h4>
-              <p className="text-xs text-slate-500 max-w-xs">
-                Browse our free & premium courses to start building your skills today.
-              </p>
-              <button
-                onClick={onClose}
-                className="mt-2 px-6 py-2.5 bg-brand-500 text-white rounded-xl text-xs font-bold shadow-md hover:bg-brand-600 transition"
-              >
-                Browse Courses
-              </button>
-            </div>
-          ) : (
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 divide-y divide-slate-100">
-              {cartItems.map((item) => (
-                <div key={item.id} className="pt-4 first:pt-0 flex gap-4 items-center">
+            ) : (
+              cartItems.map((course) => (
+                <div
+                  key={course.id}
+                  className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex gap-4 items-center relative group"
+                >
                   <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-16 h-16 rounded-xl object-cover border border-slate-200"
+                    src={course.image}
+                    alt={course.title}
+                    className="w-20 h-20 rounded-xl object-cover border border-slate-200 shrink-0"
                   />
-                  <div className="flex-1 min-w-0">
+
+                  <div className="flex-1 min-w-0 pr-6">
+                    <span className="text-[10px] font-extrabold uppercase text-brand-600">
+                      {course.category}
+                    </span>
                     <h5 className="text-xs font-extrabold text-[#0A192F] truncate">
-                      {item.title}
+                      {course.title}
                     </h5>
-                    <p className="text-[10px] text-brand-600 font-semibold">{item.category}</p>
-                    <div className="text-xs font-black text-brand-600 mt-1">
-                      {item.isFree ? 'FREE' : `৳${item.price.toLocaleString()} BDT`}
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Instructor: {course.instructor.name}
+                    </p>
+                    <div className="text-sm font-black text-brand-600 mt-1">
+                      {course.isFree ? 'FREE' : `৳${course.price.toLocaleString()} BDT`}
                     </div>
                   </div>
 
                   <button
-                    onClick={() => onRemoveFromCart(item.id)}
-                    className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 flex items-center justify-center transition"
+                    onClick={() => onRemoveFromCart(course.id)}
+                    className="absolute top-3 right-3 text-slate-400 hover:text-red-500 transition p-1"
                     title="Remove course"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
-              ))}
-            </div>
-          )}
+              ))
+            )}
+          </div>
 
-          {/* Footer Calculations & Payment Action */}
+          {/* Coupon & Total Summary Footer */}
           {cartItems.length > 0 && (
             <div className="p-6 bg-slate-50 border-t border-slate-200 space-y-4">
               
-              {/* Bangladeshi Gateways Notice Badge */}
-              <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 bg-white p-2.5 rounded-xl border border-slate-200">
-                <span className="flex items-center gap-1">
-                  <ShieldCheck className="w-4 h-4 text-emerald-500" /> Supported Gateways:
-                </span>
-                <span className="text-brand-600 font-black">bKash • Nagad • Rocket • Card</span>
-              </div>
-
-              {/* Promo Coupon Form */}
-              <form onSubmit={handleApplyCoupon} className="flex gap-2">
-                <div className="relative flex-1">
-                  <Tag className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    placeholder="Coupon (e.g. COURSEKORI50)"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs uppercase font-bold focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
+              {/* Coupon Form */}
+              <form onSubmit={handleApplyCoupon} className="space-y-2">
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Tag className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    <input
+                      type="text"
+                      placeholder="Promo Code: MASTERMIND50"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-brand-500 uppercase"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-[#0A192F] text-white rounded-xl text-xs font-extrabold hover:bg-brand-600 transition"
+                  >
+                    Apply
+                  </button>
                 </div>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-[#0A192F] hover:bg-brand-600 text-white rounded-xl text-xs font-bold transition"
-                >
-                  Apply
-                </button>
+
+                {couponError && <p className="text-[11px] text-red-500 font-bold">{couponError}</p>}
+                {couponSuccess && <p className="text-[11px] text-emerald-600 font-bold">{couponSuccess}</p>}
               </form>
 
-              {couponMessage && (
-                <div className={`text-xs font-semibold p-2 rounded-lg ${discountPercent > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
-                  {couponMessage}
+              {/* Price Calculation Breakdown */}
+              <div className="space-y-2 text-xs border-t border-slate-200 pt-3">
+                <div className="flex justify-between text-slate-600 font-medium">
+                  <span>Subtotal Amount:</span>
+                  <span className="font-bold text-slate-900">৳{rawSubtotal.toLocaleString()} BDT</span>
                 </div>
-              )}
 
-              {/* Price Totals */}
-              <div className="space-y-1.5 text-xs text-slate-600 pt-2 border-t border-slate-200/60">
-                <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span className="font-bold">৳{rawSubtotal.toLocaleString()} BDT</span>
-                </div>
-                {discountPercent > 0 && (
-                  <div className="flex justify-between text-emerald-600 font-bold">
-                    <span>Discount ({discountPercent}%)</span>
+                {appliedDiscount > 0 && (
+                  <div className="flex justify-between text-emerald-600 font-extrabold">
+                    <span>Discount (50% OFF):</span>
                     <span>-৳{discountAmount.toLocaleString()} BDT</span>
                   </div>
                 )}
-                <div className="flex justify-between text-base font-extrabold text-[#0A192F] pt-2 border-t border-slate-200">
-                  <span>Total Payable</span>
-                  <span className="text-brand-600">৳{totalPrice.toLocaleString()} BDT</span>
+
+                <div className="flex justify-between text-base font-black text-[#0A192F] pt-2 border-t border-slate-200">
+                  <span>Total Amount Payable:</span>
+                  <span className="text-brand-600">৳{finalTotal.toLocaleString()} BDT</span>
                 </div>
               </div>
 
-              {/* Proceed to Payment Button */}
+              {/* Payment Gateway Action */}
               <button
-                onClick={handleProceedToPayment}
-                className="w-full py-3.5 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-extrabold rounded-2xl text-sm shadow-xl shadow-brand-500/25 flex items-center justify-center gap-2 transition"
+                onClick={() => {
+                  onClose();
+                  onOpenPaymentModal(finalTotal);
+                }}
+                className="w-full py-3.5 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white rounded-2xl font-extrabold text-sm shadow-xl shadow-brand-500/25 flex items-center justify-center gap-2 transition"
               >
-                <Smartphone className="w-4 h-4" />
-                <span>Pay via bKash / Nagad / Card</span>
+                <span>Proceed to bKash / Nagad Checkout</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
+
+              <div className="text-[11px] text-center text-slate-400 font-semibold flex items-center justify-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                <span>256-Bit Encrypted Secure Local Payment</span>
+              </div>
 
             </div>
           )}
 
-        </div>
+        </motion.div>
+
       </div>
-    </div>
+    </AnimatePresence>
   );
 };

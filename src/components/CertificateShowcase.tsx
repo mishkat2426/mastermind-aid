@@ -40,7 +40,7 @@ export const CertificateShowcase: React.FC<CertificateShowcaseProps> = ({ isOpen
                 <div className="flex items-center gap-1.5 text-xs text-amber-400 font-extrabold uppercase tracking-wider">
                   <Sparkles className="w-3.5 h-3.5" /> Verified E-Certificate Preview
                 </div>
-                <h3 className="text-xl sm:text-2xl font-black">Course Kori Certificate Generator</h3>
+                <h3 className="text-xl sm:text-2xl font-black">Mastermind Aid Certificate Generator</h3>
               </div>
             </div>
 
@@ -99,13 +99,13 @@ export const CertificateShowcase: React.FC<CertificateShowcaseProps> = ({ isOpen
                 <div className="flex items-center justify-between border-b border-slate-200 pb-4">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-brand-500 text-white flex items-center justify-center font-extrabold text-sm">
-                      CK
+                      MA
                     </div>
-                    <span className="text-lg font-black text-[#0A192F]">Course <span className="text-brand-500">Kori</span></span>
+                    <span className="text-lg font-black text-[#0A192F]">Mastermind <span className="text-brand-500">Aid</span></span>
                   </div>
 
                   <div className="text-[10px] text-slate-400 font-mono tracking-widest uppercase">
-                    ID: CK-2026-89472-VERIFIED
+                    ID: MA-2026-89472-VERIFIED
                   </div>
                 </div>
 
@@ -144,7 +144,7 @@ export const CertificateShowcase: React.FC<CertificateShowcaseProps> = ({ isOpen
                   </div>
 
                   <div className="text-center">
-                    <div className="font-serif italic font-bold text-slate-800 text-sm">Course Kori Authority</div>
+                    <div className="font-serif italic font-bold text-slate-800 text-sm">Mastermind Aid Board</div>
                     <div className="text-[10px] text-slate-400 border-t border-slate-300 pt-1 font-sans">Academic Director</div>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Sparkles } from 'lucide-react';
+import { BrainCircuit, Sparkles } from 'lucide-react';
 
 interface PreloaderProps {
   onComplete: () => void;
@@ -12,7 +12,7 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(onComplete, 600); // Allow curtain exit animation to finish
+      setTimeout(onComplete, 600);
     }, 1400);
 
     return () => clearTimeout(timer);
@@ -39,7 +39,7 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
               transition={{ duration: 0.5, ease: 'easeOut' }}
               className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center shadow-2xl shadow-brand-500/50 ring-4 ring-white/10"
             >
-              <BookOpen className="w-8 h-8 text-white stroke-[2.5]" />
+              <BrainCircuit className="w-8 h-8 text-white stroke-[2.5]" />
             </motion.div>
 
             {/* Brand Title */}
@@ -50,11 +50,11 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
               className="space-y-1"
             >
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight flex items-center gap-1.5 justify-center">
-                Course <span className="text-brand-400">Kori</span>
+                Mastermind <span className="text-brand-400">Aid</span>
               </h1>
               <p className="text-xs text-slate-400 font-medium tracking-widest uppercase flex items-center justify-center gap-1">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                কোর্স করি • Elevating Skills in Bangladesh
+                মাসটারমাইন্ড এইড • Elevating Skills in Bangladesh
               </p>
             </motion.div>
 

@@ -13,7 +13,8 @@ import {
   Phone,
   ShieldCheck,
   Flame,
-  Layout
+  Layout,
+  BrainCircuit
 } from 'lucide-react';
 import { CATEGORIES } from '../data/coursesData';
 
@@ -50,8 +51,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="bg-brand-500 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
               <Flame className="w-3 h-3 animate-bounce" /> Hot Offer
             </span>
-            <span className="hidden sm:inline">Use code <strong className="text-amber-300 font-extrabold">COURSEKORI50</strong> for 50% OFF on all premium courses!</span>
-            <span className="sm:hidden">50% OFF Code: <strong className="text-amber-300 font-extrabold">COURSEKORI50</strong></span>
+            <span className="hidden sm:inline">Use code <strong className="text-amber-300 font-extrabold">MASTERMIND50</strong> for 50% OFF on all premium courses!</span>
+            <span className="sm:hidden">50% OFF Code: <strong className="text-amber-300 font-extrabold">MASTERMIND50</strong></span>
           </div>
 
           <div className="flex items-center gap-4 text-slate-300 text-xs">
@@ -79,14 +80,14 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* Logo */}
               <a href="#" className="flex items-center gap-3 group">
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20 group-hover:scale-105 transition-transform duration-300">
-                  <BookOpen className="w-6 h-6 stroke-[2.5]" />
+                  <BrainCircuit className="w-6 h-6 stroke-[2.5]" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-2xl font-black tracking-tight text-[#0A192F] flex items-center gap-1 leading-none">
-                    Course <span className="text-brand-500">Kori</span>
+                    Mastermind <span className="text-brand-500">Aid</span>
                   </span>
                   <span className="text-[10px] font-extrabold tracking-wider text-slate-400 uppercase mt-0.5">
-                    কোর্স করি • E-Learning Platform
+                    মাসটারমাইন্ড এইড • Elevating Skills
                   </span>
                 </div>
               </a>
