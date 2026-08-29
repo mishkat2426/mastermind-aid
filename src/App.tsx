@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Preloader } from './components/Preloader';
 import { CursorGlow } from './components/CursorGlow';
+import { CustomCursor } from './components/CustomCursor';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { MarqueePartners } from './components/MarqueePartners';
@@ -126,6 +127,9 @@ export function App() {
       
       {/* Ambient Radial Cursor Follower Light */}
       <CursorGlow />
+
+      {/* Interactive Custom Cursor */}
+      <CustomCursor />
 
       {/* Site Entrance Preloader Splash */}
       {!isLoaded && <Preloader onComplete={() => setIsLoaded(true)} />}
