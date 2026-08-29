@@ -254,7 +254,7 @@ export function App() {
       <PathFinderModal
         isOpen={isPathFinderOpen}
         onClose={() => setIsPathFinderOpen(false)}
-        onSelectCourse={(course) => navigate(`/courses/${course.id}`)}
+        onSelectRecommendedCourse={(course: any) => navigate(`/courses/${course.id}`)}
       />
 
       {/* Live AI Floating Assistant Support */}

@@ -1,24 +1,24 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, X, Trash2, Tag, ArrowRight, ShieldCheck } from 'lucide-react';
-import { Course } from '../data/coursesData';
+import { Course } from '../types/platform';
 
 interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   cartItems: Course[];
-  onRemoveFromCart: (courseId: string) => void;
+  onRemoveItem: (courseId: string) => void;
   onClearCart: () => void;
-  onOpenPaymentModal: (total: number) => void;
+  onOpenPayment: () => void;
 }
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({
   isOpen,
   onClose,
   cartItems,
-  onRemoveFromCart,
+  onRemoveItem,
   onClearCart,
-  onOpenPaymentModal,
+  onOpenPayment,
 }) => {
   const [couponCode, setCouponCode] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState(0);
@@ -93,35 +93,28 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </p>
               </div>
             ) : (
-              cartItems.map((course) => (
+              cartItems.map((item) => (
                 <div
-                  key={course.id}
+                  key={item.id}
                   className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex gap-4 items-center relative group"
                 >
                   <img
-                    src={course.image}
-                    alt={course.title}
-                    className="w-20 h-20 rounded-xl object-cover border border-slate-200 shrink-0"
+                    src={item.thumbnail || (item as any).image}
+                    alt={item.title}
+                    className="w-14 h-14 rounded-xl object-cover"
                   />
-
-                  <div className="flex-1 min-w-0 pr-6">
-                    <span className="text-[10px] font-extrabold uppercase text-brand-600">
-                      {course.category}
-                    </span>
-                    <h5 className="text-xs font-extrabold text-[#0A192F] truncate">
-                      {course.title}
-                    </h5>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
-                      Instructor: {course.instructor.name}
-                    </p>
-                    <div className="text-sm font-black text-brand-600 mt-1">
-                      {course.isFree ? 'FREE' : `৳${course.price.toLocaleString()} BDT`}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-xs font-bold text-[#0F2B5A] truncate">
+                      {item.title}
+                    </h4>
+                    <div className="text-[11px] font-extrabold text-brand-600 mt-1">
+                      {item.isFree ? 'FREE' : `৳${item.price?.toLocaleString()}`}
                     </div>
                   </div>
 
                   <button
-                    onClick={() => onRemoveFromCart(course.id)}
-                    className="absolute top-3 right-3 text-slate-400 hover:text-red-500 transition p-1"
+                    onClick={() => onRemoveItem(item.id)}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition"
                     title="Remove course"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -182,13 +175,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
               {/* Payment Gateway Action */}
               <button
-                onClick={() => {
-                  onClose();
-                  onOpenPaymentModal(finalTotal);
-                }}
-                className="w-full py-3.5 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white rounded-2xl font-extrabold text-sm shadow-xl shadow-brand-500/25 flex items-center justify-center gap-2 transition"
+                onClick={onOpenPayment}
+                className="w-full py-3.5 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-xl shadow-brand-500/30 flex items-center justify-center gap-2 transition"
               >
-                <span>Proceed to bKash / Nagad Checkout</span>
+                <span>Proceed to Checkout</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
