@@ -8,6 +8,10 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, role?: UserRole) => Promise<{ success: boolean; user?: User; error?: string }>;
+  loginTeacher: (email: string, password: string, teacherAccessCode?: string) => Promise<{ success: boolean; user?: User; error?: string }>;
+  loginAdmin: (email: string, password: string, adminSecurityCode: string) => Promise<{ success: boolean; user?: User; error?: string }>;
+  activateTeacher: (name: string, email: string, phone: string, password: string, teacherAccessCode: string) => Promise<{ success: boolean; user?: User; error?: string }>;
+  createAdminAccount: (name: string, email: string) => Promise<{ success: boolean; user?: User; error?: string }>;
   register: (name: string, email: string, role: UserRole) => Promise<{ success: boolean; user?: User; error?: string }>;
   logout: () => void;
   forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
@@ -15,7 +19,7 @@ interface AuthContextType {
   updateProfile: (updates: Partial<User>) => void;
 }
 
-const AUTH_SESSION_KEY = 'mastermind_auth_session_v2';
+const AUTH_SESSION_KEY = 'mastermind_auth_session_v3';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -29,17 +33,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const savedUserRaw = localStorage.getItem(AUTH_SESSION_KEY);
       if (savedUserRaw) {
         const savedUser: User = JSON.parse(savedUserRaw);
-        // Verify user still exists in DB
         const freshUser = DBService.getUserById(savedUser.id);
         if (freshUser) {
           setCurrentUser(freshUser);
         } else {
-          // Default to student seed if missing
-          const defaultStudent = DBService.getUserByEmail('student@mastermindaid.com');
-          if (defaultStudent) setCurrentUser(defaultStudent);
+          setCurrentUser(null);
         }
       } else {
-        // Default guest / seed state (login required for protected routes)
         setCurrentUser(null);
       }
     } catch (e) {
@@ -54,44 +54,93 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     requestedRole?: UserRole
   ): Promise<{ success: boolean; user?: User; error?: string }> => {
     setIsLoading(true);
-    await new Promise((res) => setTimeout(res, 600)); // Simulate API network latency
+    await new Promise((res) => setTimeout(res, 400));
 
     let user = DBService.getUserByEmail(email);
 
     if (!user) {
-      // Auto-provision demo account based on role request if email matches demo pattern
-      if (email.includes('admin')) {
-        user = DBService.getUserByEmail('admin@mastermindaid.com');
-      } else if (email.includes('teacher')) {
-        user = DBService.getUserByEmail('teacher@mastermindaid.com');
-      } else if (email.includes('student')) {
-        user = DBService.getUserByEmail('student@mastermindaid.com');
-      } else {
-        // Provision new user on the fly if not found
-        user = DBService.createUser({
-          name: email.split('@')[0],
-          email,
-          role: requestedRole || 'STUDENT',
-          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
-        });
-      }
+      user = DBService.createUser({
+        name: email.split('@')[0],
+        email,
+        role: requestedRole || 'STUDENT',
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+      });
     }
 
-    if (user) {
-      // If requested role is specified, update user role
-      if (requestedRole && user.role !== requestedRole) {
-        const updated = DBService.updateUser(user.id, { role: requestedRole });
-        if (updated) user = updated;
-      }
-
-      setCurrentUser(user);
-      localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(user));
+    if (user.status === 'SUSPENDED') {
       setIsLoading(false);
-      return { success: true, user };
+      return { success: false, error: 'Account suspended. Please contact platform support.' };
     }
 
+    setCurrentUser(user);
+    localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(user));
     setIsLoading(false);
-    return { success: false, error: 'User email or credentials not recognized.' };
+    return { success: true, user };
+  };
+
+  const loginTeacher = async (
+    email: string,
+    password: string,
+    teacherAccessCode?: string
+  ): Promise<{ success: boolean; user?: User; error?: string }> => {
+    setIsLoading(true);
+    await new Promise((res) => setTimeout(res, 500));
+
+    const result = DBService.authenticateTeacher(email, password, teacherAccessCode);
+    if (result.success && result.user) {
+      setCurrentUser(result.user);
+      localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(result.user));
+    }
+    setIsLoading(false);
+    return result;
+  };
+
+  const loginAdmin = async (
+    email: string,
+    password: string,
+    adminSecurityCode: string
+  ): Promise<{ success: boolean; user?: User; error?: string }> => {
+    setIsLoading(true);
+    await new Promise((res) => setTimeout(res, 500));
+
+    const result = DBService.authenticateAdmin(email, password, adminSecurityCode);
+    if (result.success && result.user) {
+      setCurrentUser(result.user);
+      localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(result.user));
+    }
+    setIsLoading(false);
+    return result;
+  };
+
+  const activateTeacher = async (
+    name: string,
+    email: string,
+    phone: string,
+    password: string,
+    teacherAccessCode: string
+  ): Promise<{ success: boolean; user?: User; error?: string }> => {
+    setIsLoading(true);
+    await new Promise((res) => setTimeout(res, 500));
+
+    const result = DBService.activateTeacherAccount(name, email, phone, password, teacherAccessCode);
+    if (result.success && result.user) {
+      setCurrentUser(result.user);
+      localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(result.user));
+    }
+    setIsLoading(false);
+    return result;
+  };
+
+  const createAdminAccount = async (
+    name: string,
+    email: string
+  ): Promise<{ success: boolean; user?: User; error?: string }> => {
+    setIsLoading(true);
+    await new Promise((res) => setTimeout(res, 500));
+
+    const result = DBService.createAdminAccount(name, email, currentUser?.name || 'Admin');
+    setIsLoading(false);
+    return result;
   };
 
   const register = async (
@@ -100,7 +149,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     role: UserRole
   ): Promise<{ success: boolean; user?: User; error?: string }> => {
     setIsLoading(true);
-    await new Promise((res) => setTimeout(res, 600));
+    await new Promise((res) => setTimeout(res, 500));
 
     const existing = DBService.getUserByEmail(email);
     if (existing) {
@@ -127,15 +176,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const forgotPassword = async (email: string): Promise<{ success: boolean; message: string }> => {
-    await new Promise((res) => setTimeout(res, 600));
+    await new Promise((res) => setTimeout(res, 400));
     return {
       success: true,
-      message: `Password reset instructions have been dispatched to ${email}.`,
+      message: `Password reset instructions dispatched to ${email}.`,
     };
   };
 
   const resetPassword = async (email: string): Promise<{ success: boolean; message: string }> => {
-    await new Promise((res) => setTimeout(res, 600));
+    await new Promise((res) => setTimeout(res, 400));
     return {
       success: true,
       message: 'Your password has been successfully updated. You can now log in.',
@@ -159,6 +208,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!currentUser,
         isLoading,
         login,
+        loginTeacher,
+        loginAdmin,
+        activateTeacher,
+        createAdminAccount,
         register,
         logout,
         forgotPassword,

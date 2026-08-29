@@ -29,7 +29,8 @@ import {
   EyeOff,
   Copy,
   AlertTriangle,
-  RotateCcw
+  RotateCcw,
+  Key
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -37,7 +38,13 @@ export const AdminDashboard: React.FC = () => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'courses' | 'users' | 'teachers' | 'reviews' | 'comments' | 'transactions' | 'categories' | 'audit'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'courses' | 'users' | 'teachers' | 'reviews' | 'comments' | 'transactions' | 'categories' | 'audit' | 'administrators'>('overview');
+  
+  // Administrator & Access Code Form states
+  const [newAdminName, setNewAdminName] = useState('');
+  const [newAdminEmail, setNewAdminEmail] = useState('');
+  const [newTeacherAccessCode, setNewTeacherAccessCode] = useState('');
+  const [newAdminSecurityCode, setNewAdminSecurityCode] = useState('');
   
   // Modals & Selection
   const [showCourseModal, setShowCourseModal] = useState(false);
@@ -187,6 +194,26 @@ export const AdminDashboard: React.FC = () => {
     window.location.reload();
   };
 
+  const handleCreateAdmin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAdminEmail.trim() || !newAdminName.trim()) return;
+    DBService.createAdminAccount(newAdminName, newAdminEmail, currentUser?.name || 'Admin');
+    setNewAdminName('');
+    setNewAdminEmail('');
+    alert(`New Administrator account created for ${newAdminEmail}`);
+    window.location.reload();
+  };
+
+  const handleRotateAccessCodes = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTeacherAccessCode.trim() && !newAdminSecurityCode.trim()) return;
+    DBService.rotateAccessCodes(currentUser?.name || 'Admin', newTeacherAccessCode, newAdminSecurityCode);
+    setNewTeacherAccessCode('');
+    setNewAdminSecurityCode('');
+    alert('Security Access Codes rotated successfully!');
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 text-white flex flex-col md:flex-row font-sans">
       
@@ -213,6 +240,7 @@ export const AdminDashboard: React.FC = () => {
               { id: 'comments', label: 'Comments & Reports', icon: <MessageSquare className="w-4 h-4 text-rose-400" /> },
               { id: 'transactions', label: 'Transactions Ledger', icon: <CreditCard className="w-4 h-4 text-emerald-400" /> },
               { id: 'categories', label: 'Category Manager', icon: <Tag className="w-4 h-4" /> },
+              { id: 'administrators', label: 'Admins & Access Codes', icon: <ShieldCheck className="w-4 h-4 text-purple-400" /> },
               { id: 'audit', label: 'Audit Logs', icon: <History className="w-4 h-4 text-slate-400" /> },
             ].map((item) => (
               <button
@@ -560,6 +588,102 @@ export const AdminDashboard: React.FC = () => {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Tab: Administrators & Access Codes (Requirement #13 & #14) */}
+        {activeTab === 'administrators' && (
+          <div className="space-y-6">
+            
+            {/* Create Administrator Card */}
+            <div className="bg-[#0A192F] p-6 rounded-3xl border border-slate-800 space-y-4">
+              <h3 className="text-lg font-black flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-purple-400" />
+                <span>Create Authorized Administrator Account</span>
+              </h3>
+              <p className="text-xs text-slate-400">Only existing authenticated Admins can provision another Administrator account.</p>
+
+              <form onSubmit={handleCreateAdmin} className="grid sm:grid-cols-3 gap-3 text-xs font-bold">
+                <input
+                  type="text"
+                  required
+                  placeholder="Admin Name"
+                  value={newAdminName}
+                  onChange={(e) => setNewAdminName(e.target.value)}
+                  className="px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"
+                />
+                <input
+                  type="email"
+                  required
+                  placeholder="admin@mastermindaid.com"
+                  value={newAdminEmail}
+                  onChange={(e) => setNewAdminEmail(e.target.value)}
+                  className="px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"
+                />
+                <button type="submit" className="py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-extrabold shadow">
+                  + Create Administrator
+                </button>
+              </form>
+            </div>
+
+            {/* Access Code Rotation Card */}
+            <div className="bg-[#0A192F] p-6 rounded-3xl border border-purple-500/30 space-y-4">
+              <h3 className="text-lg font-black flex items-center gap-2 text-purple-300">
+                <Key className="w-5 h-5 text-amber-400" />
+                <span>Rotate System Security Access Codes</span>
+              </h3>
+              <p className="text-xs text-slate-400">Update server access codes for Teacher registration and Admin security login.</p>
+
+              <form onSubmit={handleRotateAccessCodes} className="grid sm:grid-cols-3 gap-3 text-xs font-bold">
+                <div>
+                  <label className="block text-[11px] text-emerald-400 mb-1">New Teacher Code (Default: MASTERMIND10)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. MASTERMIND2026"
+                    value={newTeacherAccessCode}
+                    onChange={(e) => setNewTeacherAccessCode(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-purple-400 mb-1">New Admin Code (Default: MASTERMIND ADMIN)</label>
+                  <input
+                    type="password"
+                    placeholder="Enter new Admin security secret"
+                    value={newAdminSecurityCode}
+                    onChange={(e) => setNewAdminSecurityCode(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white font-mono"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <button type="submit" className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl font-extrabold shadow">
+                    Rotate Security Codes
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* List of Admins */}
+            <div className="bg-[#0A192F] p-6 rounded-3xl border border-slate-800 space-y-3">
+              <h4 className="text-sm font-black text-white">Active Platform Administrators</h4>
+              <div className="space-y-2">
+                {users.filter((u) => u.role === 'ADMIN').map((adm) => (
+                  <div key={adm.id} className="p-3.5 bg-[#071325] rounded-2xl border border-slate-800 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-3">
+                      <img src={adm.avatar} alt={adm.name} className="w-8 h-8 rounded-full object-cover ring-2 ring-purple-500" />
+                      <div>
+                        <div className="font-extrabold text-white">{adm.name}</div>
+                        <div className="text-[10px] text-purple-400 font-mono">{adm.email}</div>
+                      </div>
+                    </div>
+                    <span className="bg-purple-500/20 text-purple-300 font-bold px-2.5 py-1 rounded-lg text-[10px]">
+                      SUPER ADMIN
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
         )}
 

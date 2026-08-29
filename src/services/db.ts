@@ -31,6 +31,8 @@ const STORAGE_KEYS = {
   CATEGORIES: 'mastermind_categories_v3',
   AUDIT_LOGS: 'mastermind_audit_logs_v3',
   ANNOUNCEMENTS: 'mastermind_announcements_v3',
+  TEACHER_CODE: 'mastermind_teacher_code_v3',
+  ADMIN_CODE: 'mastermind_admin_code_v3',
 };
 
 // Seed Users
@@ -177,6 +179,136 @@ function saveData<T>(key: string, data: T): void {
 }
 
 export class DBService {
+  // Access Code Verification Engine
+  static getTeacherAccessCode(): string {
+    return loadData<string>(STORAGE_KEYS.TEACHER_CODE, 'MASTERMIND10');
+  }
+
+  static getAdminAccessCode(): string {
+    return loadData<string>(STORAGE_KEYS.ADMIN_CODE, 'MASTERMIND ADMIN');
+  }
+
+  static verifyTeacherCode(inputCode: string): boolean {
+    if (!inputCode) return false;
+    const validCode = this.getTeacherAccessCode();
+    return inputCode.trim().toUpperCase() === validCode.trim().toUpperCase();
+  }
+
+  static verifyAdminCode(inputCode: string): boolean {
+    if (!inputCode) return false;
+    const validCode = this.getAdminAccessCode();
+    return inputCode.trim().toUpperCase() === validCode.trim().toUpperCase();
+  }
+
+  static rotateAccessCodes(adminName: string, newTeacherCode?: string, newAdminCode?: string): void {
+    if (newTeacherCode && newTeacherCode.trim()) {
+      saveData(STORAGE_KEYS.TEACHER_CODE, newTeacherCode.trim());
+      this.logAdminAction('usr-admin-1', adminName, 'Rotated Teacher Access Code', 'Security', 'TEACHER_CODE');
+    }
+    if (newAdminCode && newAdminCode.trim()) {
+      saveData(STORAGE_KEYS.ADMIN_CODE, newAdminCode.trim());
+      this.logAdminAction('usr-admin-1', adminName, 'Rotated Admin Security Code', 'Security', 'ADMIN_CODE');
+    }
+  }
+
+  // Secure Authentication Workflows
+  static authenticateAdmin(email: string, password: string, adminSecurityCode: string): { success: boolean; user?: User; error?: string } {
+    if (!this.verifyAdminCode(adminSecurityCode)) {
+      this.logAdminAction('system', 'System Security', `Failed Admin login attempt for ${email} (Invalid Security Code)`, 'Security', email);
+      return { success: false, error: 'Admin authentication failed.' };
+    }
+
+    const user = this.getUserByEmail(email);
+    if (!user || user.role !== 'ADMIN') {
+      this.logAdminAction('system', 'System Security', `Failed Admin login attempt for ${email} (Unauthorized Role/Missing Account)`, 'Security', email);
+      return { success: false, error: 'Admin authentication failed.' };
+    }
+
+    if (user.status === 'SUSPENDED') {
+      return { success: false, error: 'Account has been suspended. Please contact platform support.' };
+    }
+
+    this.logAdminAction(user.id, user.name, `Successful Admin login`, 'Auth', user.id);
+    return { success: true, user };
+  }
+
+  static authenticateTeacher(email: string, password: string, teacherAccessCode?: string): { success: boolean; user?: User; error?: string } {
+    let user = this.getUserByEmail(email);
+
+    if (!user) {
+      // If user doesn't exist, require Teacher Access Code for activation
+      if (!teacherAccessCode || !this.verifyTeacherCode(teacherAccessCode)) {
+        return { success: false, error: 'Unable to verify teacher access. Please check your credentials.' };
+      }
+      user = this.createUser({
+        name: email.split('@')[0],
+        email,
+        role: 'TEACHER',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+      });
+      this.logAdminAction(user.id, user.name, `Teacher account created via access code`, 'Auth', user.id);
+      return { success: true, user };
+    }
+
+    if (user.role !== 'TEACHER' && user.role !== 'ADMIN') {
+      return { success: false, error: 'Unable to verify teacher access. Please check your credentials.' };
+    }
+
+    if (user.status === 'SUSPENDED') {
+      return { success: false, error: 'Account has been suspended. Please contact platform support.' };
+    }
+
+    this.logAdminAction(user.id, user.name, `Successful Teacher login`, 'Auth', user.id);
+    return { success: true, user };
+  }
+
+  static activateTeacherAccount(name: string, email: string, phone: string, password: string, teacherAccessCode: string): { success: boolean; user?: User; error?: string } {
+    if (!this.verifyTeacherCode(teacherAccessCode)) {
+      return { success: false, error: 'Invalid teacher access code.' };
+    }
+
+    const existing = this.getUserByEmail(email);
+    if (existing) {
+      if (existing.role === 'TEACHER') {
+        return { success: true, user: existing };
+      }
+      // Upgrade role to TEACHER if code is valid
+      const updated = this.updateUser(existing.id, { role: 'TEACHER', phone, name });
+      this.logAdminAction(existing.id, name, `Upgraded user to Teacher via access code`, 'Auth', existing.id);
+      return { success: true, user: updated };
+    }
+
+    const newTeacher = this.createUser({
+      name,
+      email,
+      phone,
+      role: 'TEACHER',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+    });
+
+    this.logAdminAction(newTeacher.id, name, `Activated new Teacher account via access code`, 'Auth', newTeacher.id);
+    return { success: true, user: newTeacher };
+  }
+
+  static createAdminAccount(name: string, email: string, adminCreatorName: string): { success: boolean; user?: User; error?: string } {
+    const existing = this.getUserByEmail(email);
+    if (existing) {
+      const updated = this.updateUser(existing.id, { role: 'ADMIN', name });
+      this.logAdminAction('usr-admin-1', adminCreatorName, `Promoted user ${email} to Admin`, 'AdminManagement', existing.id);
+      return { success: true, user: updated };
+    }
+
+    const newAdmin = this.createUser({
+      name,
+      email,
+      role: 'ADMIN',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+    });
+
+    this.logAdminAction('usr-admin-1', adminCreatorName, `Created new Admin account: ${email}`, 'AdminManagement', newAdmin.id);
+    return { success: true, user: newAdmin };
+  }
+
   // Users
   static getUsers(): User[] {
     return loadData<User[]>(STORAGE_KEYS.USERS, INITIAL_USERS);
