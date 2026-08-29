@@ -167,6 +167,8 @@ export function App() {
 
           {/* Authentication Routes */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/admin/login" element={<LoginPage presetRole="ADMIN" />} />
+          <Route path="/teacher/login" element={<LoginPage presetRole="TEACHER" />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />

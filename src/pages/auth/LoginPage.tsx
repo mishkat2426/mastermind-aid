@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User, Lock, Mail, ArrowRight, BrainCircuit, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
@@ -6,7 +6,11 @@ import { useAuth } from '../../context/AuthContext';
 import { UserRole } from '../../types/platform';
 import { AIOrb } from '../../components/AIOrb';
 
-export const LoginPage: React.FC = () => {
+interface LoginPageProps {
+  presetRole?: UserRole;
+}
+
+export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isLoading } = useAuth();
@@ -19,6 +23,16 @@ export const LoginPage: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
 
+  useEffect(() => {
+    if (presetRole === 'ADMIN') {
+      setEmail('admin@mastermindaid.com');
+      setPassword('admin123');
+    } else if (presetRole === 'TEACHER') {
+      setEmail('teacher@mastermindaid.com');
+      setPassword('teacher123');
+    }
+  }, [presetRole]);
+
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
@@ -28,7 +42,7 @@ export const LoginPage: React.FC = () => {
       return;
     }
 
-    const result = await login(email);
+    const result = await login(email, presetRole);
     if (result.success && result.user) {
       if (from) {
         navigate(from, { replace: true });
@@ -65,6 +79,18 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  const pageTitle = presetRole === 'ADMIN' 
+    ? 'Admin Portal Login' 
+    : presetRole === 'TEACHER' 
+    ? 'Instructor Portal Login' 
+    : 'Account Login';
+
+  const pageSubtitle = presetRole === 'ADMIN'
+    ? 'Secure Administrator Authentication Gateway'
+    : presetRole === 'TEACHER'
+    ? 'Sign in to access your instructor course dashboard'
+    : 'Sign in to access your role dashboard and course materials';
+
   return (
     <div className="min-h-screen bg-[#0A192F] text-white flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans relative overflow-hidden">
       
@@ -82,9 +108,9 @@ export const LoginPage: React.FC = () => {
           </span>
         </Link>
         <div>
-          <h2 className="text-2xl font-black">Account Login</h2>
+          <h2 className="text-2xl font-black">{pageTitle}</h2>
           <p className="text-xs text-slate-400 font-medium">
-            Sign in to access your role dashboard and course materials.
+            {pageSubtitle}
           </p>
         </div>
       </div>
@@ -104,7 +130,9 @@ export const LoginPage: React.FC = () => {
             <button
               type="button"
               onClick={() => handleQuickDemoLogin('STUDENT')}
-              className="py-2.5 px-3 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-extrabold shadow transition flex flex-col items-center gap-0.5"
+              className={`py-2.5 px-3 rounded-xl text-xs font-extrabold shadow transition flex flex-col items-center gap-0.5 ${
+                presetRole === 'STUDENT' || !presetRole ? 'bg-brand-500 ring-2 ring-white text-white' : 'bg-brand-500/70 hover:bg-brand-500 text-white'
+              }`}
             >
               <span>Student</span>
               <span className="text-[9px] opacity-85 font-mono">student@...</span>
@@ -113,7 +141,9 @@ export const LoginPage: React.FC = () => {
             <button
               type="button"
               onClick={() => handleQuickDemoLogin('TEACHER')}
-              className="py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold shadow transition flex flex-col items-center gap-0.5"
+              className={`py-2.5 px-3 rounded-xl text-xs font-extrabold shadow transition flex flex-col items-center gap-0.5 ${
+                presetRole === 'TEACHER' ? 'bg-emerald-600 ring-2 ring-white text-white' : 'bg-emerald-600/70 hover:bg-emerald-600 text-white'
+              }`}
             >
               <span>Teacher</span>
               <span className="text-[9px] opacity-85 font-mono">teacher@...</span>
@@ -122,7 +152,9 @@ export const LoginPage: React.FC = () => {
             <button
               type="button"
               onClick={() => handleQuickDemoLogin('ADMIN')}
-              className="py-2.5 px-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-extrabold shadow transition flex flex-col items-center gap-0.5"
+              className={`py-2.5 px-3 rounded-xl text-xs font-extrabold shadow transition flex flex-col items-center gap-0.5 ${
+                presetRole === 'ADMIN' ? 'bg-purple-600 ring-2 ring-white text-white' : 'bg-purple-600/70 hover:bg-purple-600 text-white'
+              }`}
             >
               <span>Admin</span>
               <span className="text-[9px] opacity-85 font-mono">admin@...</span>
@@ -211,7 +243,7 @@ export const LoginPage: React.FC = () => {
                 </div>
               ) : (
                 <>
-                  <span>Sign In To Dashboard</span>
+                  <span>Sign In To {presetRole || 'Dashboard'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -222,7 +254,7 @@ export const LoginPage: React.FC = () => {
           <div className="text-center pt-2 text-xs text-slate-400 font-medium border-t border-slate-800">
             Don't have an account?{' '}
             <Link to="/register" className="font-extrabold text-brand-400 hover:underline">
-              Create Student / Teacher Account
+              Create Account
             </Link>
           </div>
 
