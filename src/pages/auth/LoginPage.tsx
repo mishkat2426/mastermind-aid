@@ -192,7 +192,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
 
         {/* STUDENT LOGIN FORM */}
         {activeRole === 'STUDENT' && (
-          <div className="bg-[#0B1B33]/90 backdrop-blur-xl p-8 rounded-3xl border border-slate-700/80 shadow-2xl space-y-5">
+          <div className="bg-[#0B1B33]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-slate-700/80 shadow-2xl space-y-5">
             <form onSubmit={handleStudentSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1">Email Address</label>
@@ -201,7 +201,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
                   <input
                     type="email"
                     required
-                    placeholder="student@mastermindaid.com"
+                    placeholder="Enter your email address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-[#071325] border border-slate-700 rounded-xl text-xs font-bold text-white focus:ring-2 focus:ring-brand-500 focus:outline-none"
@@ -216,7 +216,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
-                    placeholder="••••••••"
+                    placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-10 pr-10 py-3 bg-[#071325] border border-slate-700 rounded-xl text-xs font-bold text-white focus:ring-2 focus:ring-brand-500 focus:outline-none"
@@ -252,7 +252,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
 
         {/* TEACHER LOGIN & ACTIVATION FORM */}
         {activeRole === 'TEACHER' && (
-          <div className="bg-[#0B1B33]/90 backdrop-blur-xl p-8 rounded-3xl border border-slate-700/80 shadow-2xl space-y-5">
+          <div className="bg-[#0B1B33]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-slate-700/80 shadow-2xl space-y-5">
             <div className="flex gap-2 p-1 bg-[#071325] rounded-xl text-xs font-bold">
               <button
                 type="button"
@@ -279,7 +279,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
                     <input
                       type="text"
                       required
-                      placeholder="Hasibul Islam"
+                      placeholder="Enter full name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 bg-[#071325] border border-slate-700 rounded-xl text-xs font-bold text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -295,7 +295,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
                   <input
                     type="email"
                     required
-                    placeholder="teacher@mastermindaid.com"
+                    placeholder="Enter email address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-[#071325] border border-slate-700 rounded-xl text-xs font-bold text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -310,7 +310,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
                     <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="tel"
-                      placeholder="+880 1812-345678"
+                      placeholder="Enter phone number"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 bg-[#071325] border border-slate-700 rounded-xl text-xs font-bold text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -326,7 +326,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
-                    placeholder="••••••••"
+                    placeholder="Enter password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-10 pr-10 py-3 bg-[#071325] border border-slate-700 rounded-xl text-xs font-bold text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -372,7 +372,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
 
         {/* ADMIN LOGIN FORM (Requirement #4 & #6) */}
         {activeRole === 'ADMIN' && (
-          <div className="bg-[#0B1B33]/90 backdrop-blur-xl p-8 rounded-3xl border border-purple-500/40 shadow-2xl space-y-5">
+          <div className="bg-[#0B1B33]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-purple-500/40 shadow-2xl space-y-5">
             <div className="flex items-center gap-2 text-xs text-purple-300 font-bold bg-purple-500/10 p-3 rounded-xl border border-purple-500/20">
               <ShieldCheck className="w-4 h-4 text-purple-400 shrink-0" />
               <span>Privileged Administrator Security Gateway</span>
@@ -386,7 +386,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
                   <input
                     type="email"
                     required
-                    placeholder="admin@mastermindaid.com"
+                    placeholder="Enter Admin Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-[#071325] border border-slate-700 rounded-xl text-xs font-bold text-white focus:ring-2 focus:ring-purple-500 focus:outline-none"
@@ -401,7 +401,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
-                    placeholder="••••••••"
+                    placeholder="Enter Admin Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-10 pr-10 py-3 bg-[#071325] border border-slate-700 rounded-xl text-xs font-bold text-white focus:ring-2 focus:ring-purple-500 focus:outline-none"
@@ -419,7 +419,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
                   <input
                     type="password"
                     required
-                    placeholder="Enter Admin Special Security Code"
+                    placeholder="Enter Admin Security Code"
                     value={accessCode}
                     onChange={(e) => setAccessCode(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-[#071325] border border-purple-500/50 rounded-xl text-xs font-mono font-bold text-white focus:ring-2 focus:ring-purple-500 focus:outline-none"
