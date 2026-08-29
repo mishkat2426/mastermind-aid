@@ -1,31 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import { Preloader } from './components/Preloader';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+
+// Layout & Global Components
 import { Navbar } from './components/Navbar';
-import { HeroSection } from './components/HeroSection';
-import { MarqueePartners } from './components/MarqueePartners';
-import { CategoryGrid } from './components/CategoryGrid';
-import { CourseGrid } from './components/CourseGrid';
-import { HowItWorks } from './components/HowItWorks';
-import { CourseComparisonTable } from './components/CourseComparisonTable';
-import { StudentProjectsGallery } from './components/StudentProjectsGallery';
-import { StatsCounter } from './components/StatsCounter';
-import { TestimonialSection } from './components/TestimonialSection';
-import { SeoContentSection } from './components/SeoContentSection';
-import { Footer } from './components/Footer';
-import { CourseDetailModal } from './components/CourseDetailModal';
+import { Preloader } from './components/Preloader';
+import { ProtectedRoute } from './components/ProtectedRoute';
+
+// Public Pages
+import { HomePage } from './pages/HomePage';
+import { CoursesPage } from './pages/courses/CoursesPage';
+import { CourseDetailPage } from './pages/courses/CourseDetailPage';
+import { CheckoutPage } from './pages/checkout/CheckoutPage';
+import { ClassroomPage } from './pages/classroom/ClassroomPage';
+
+// Auth Pages
+import { LoginPage } from './pages/auth/LoginPage';
+import { RegisterPage } from './pages/auth/RegisterPage';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
+
+// Transactions Page
+import { TransactionsPage } from './pages/transactions/TransactionsPage';
+
+// Dashboards
+import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { TeacherDashboard } from './pages/teacher/TeacherDashboard';
+import { StudentDashboard } from './pages/student/StudentDashboard';
+
+// Modals & Floating Tools
 import { SearchModal } from './components/SearchModal';
 import { CartDrawer } from './components/CartDrawer';
-import { AuthModal } from './components/AuthModal';
-import { PaymentModal } from './components/PaymentModal';
-import { CertificateShowcase } from './components/CertificateShowcase';
-import { DashboardPreviewModal } from './components/DashboardPreviewModal';
 import { InteractiveCodePlayground } from './components/InteractiveCodePlayground';
 import { PathFinderModal } from './components/PathFinderModal';
 import { FloatingAssistant } from './components/FloatingAssistant';
-import { Course, COURSES } from './data/coursesData';
+
+import { Course } from './types/platform';
+import { DBService } from './services/db';
 
 export function App() {
-  // Preloader State
+  const navigate = useNavigate();
+
+  // Site Initial Preloader State
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Cart State (Persisted in localStorage)
@@ -33,30 +48,18 @@ export function App() {
     try {
       const saved = localStorage.getItem('mastermindaid_cart');
       return saved ? JSON.parse(saved) : [];
-    } catch (e) {
+    } catch {
       return [];
     }
   });
 
-  // UI Modals State
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
-  const [isCertificateOpen, setIsCertificateOpen] = useState(false);
-  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isCodeEditorOpen, setIsCodeEditorOpen] = useState(false);
   const [isPathFinderOpen, setIsPathFinderOpen] = useState(false);
-  const [paymentTotal, setPaymentTotal] = useState(0);
-  const [activeCourseModal, setActiveCourseModal] = useState<Course | null>(null);
-
-  // Category Filter State
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
-  // Toast Notification State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Sync Cart to LocalStorage
+  // Save Cart to LocalStorage
   useEffect(() => {
     try {
       localStorage.setItem('mastermindaid_cart', JSON.stringify(cart));
@@ -65,199 +68,182 @@ export function App() {
     }
   }, [cart]);
 
-  // Keyboard Shortcuts (Ctrl+K or Cmd+K to open Search)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        setIsSearchOpen(true);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  // Show Temporary Toast Message
-  const triggerToast = (msg: string) => {
+  const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
+    setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Cart Operations
   const handleAddToCart = (course: Course) => {
-    const exists = cart.some((item) => item.id === course.id);
-    if (!exists) {
-      setCart((prev) => [...prev, course]);
-      triggerToast(`🛒 "${course.title}" added to shopping cart!`);
+    if (!cart.some((item) => item.id === course.id)) {
+      setCart([...cart, course]);
+      showToast(`" ${course.title} " added to your cart!`);
     } else {
-      triggerToast(`ℹ️ "${course.title}" is already in your cart.`);
+      showToast(`" ${course.title} " is already in your cart.`);
     }
   };
 
   const handleRemoveFromCart = (courseId: string) => {
-    setCart((prev) => prev.filter((item) => item.id !== courseId));
-    triggerToast('🗑️ Item removed from cart.');
+    setCart(cart.filter((item) => item.id !== courseId));
+    showToast('Course removed from cart.');
   };
 
   const handleClearCart = () => {
     setCart([]);
+    showToast('Cart cleared.');
   };
 
-  const handleOpenPayment = (total: number) => {
-    setPaymentTotal(total);
-    setIsPaymentOpen(true);
-  };
-
-  const handlePaymentSuccess = () => {
-    handleClearCart();
-    triggerToast('🎉 Enrollment Successful! Welcome to Mastermind Aid.');
-  };
-
-  const handleScrollToCourses = () => {
-    const el = document.getElementById('courses');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  const cartTotal = cart.reduce((sum, item) => sum + (item.price || 0), 0);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col relative font-sans">
       
+      {/* Global Responsive Navbar */}
+      <Navbar
+        cartCount={cart.length}
+        onOpenCart={() => setIsCartOpen(true)}
+        onOpenSearch={() => setIsSearchOpen(true)}
+      />
+
       {/* Site Entrance Preloader Splash */}
       {!isLoaded && <Preloader onComplete={() => setIsLoaded(true)} />}
 
       {/* Toast Notification Popup */}
       {toastMessage && (
-        <div className="fixed bottom-6 left-6 z-50 bg-[#0A192F] text-[#FFFFFF] px-5 py-3.5 rounded-2xl shadow-2xl border border-brand-400 text-xs sm:text-sm font-bold flex items-center gap-2 animate-in slide-in-from-bottom-5 duration-300">
+        <div className="fixed bottom-6 left-6 z-50 bg-[#0A192F] text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-brand-400 text-xs sm:text-sm font-bold flex items-center gap-2 animate-in slide-in-from-bottom-5 duration-300">
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Header & Navbar */}
-      <Navbar
-        cartCount={cart.length}
-        onOpenCart={() => setIsCartOpen(true)}
-        onOpenSearch={() => setIsSearchOpen(true)}
-        onOpenAuth={() => setIsAuthOpen(true)}
-        onOpenCertificate={() => setIsCertificateOpen(true)}
-        onOpenDashboard={() => setIsDashboardOpen(true)}
-        selectedCategory={selectedCategory}
-        onSelectCategory={setSelectedCategory}
-      />
-
-      {/* Main Body Content */}
-      <main className="flex-1">
-        {/* Hero Banner */}
-        <HeroSection
-          onExploreCourses={handleScrollToCourses}
-          onOpenPreview={() => setActiveCourseModal(COURSES[0])}
-          onOpenCodeEditor={() => setIsCodeEditorOpen(true)}
-          onOpenPathFinder={() => setIsPathFinderOpen(true)}
-        />
-
-        {/* Animated Marquee Partner Ticker */}
-        <MarqueePartners />
-
-        {/* Category Grid */}
-        <CategoryGrid
-          selectedCategory={selectedCategory}
-          onSelectCategory={(catId) => {
-            setSelectedCategory(catId);
-            handleScrollToCourses();
-          }}
-        />
-
-        {/* Popular Courses Grid */}
-        <CourseGrid
-          selectedCategory={selectedCategory}
-          onSelectCategory={setSelectedCategory}
-          onViewCourse={(course) => setActiveCourseModal(course)}
-          onAddToCart={handleAddToCart}
-          cartItemIds={cart.map((item) => item.id)}
-        />
-
-        {/* 3-Step Learning Process */}
-        <HowItWorks />
-
-        {/* Pricing & Tier Comparison Table */}
-        <CourseComparisonTable
-          onSelectPlan={(planName, price) => {
-            if (price > 0) {
-              handleOpenPayment(price);
-            } else {
-              handleScrollToCourses();
+      {/* Application Route Engine */}
+      <div className="flex-1">
+        <Routes>
+          {/* Public Marketing Homepage */}
+          <Route
+            path="/"
+            element={
+              <HomePage
+                onOpenCodeEditor={() => setIsCodeEditorOpen(true)}
+                onOpenPathFinder={() => setIsPathFinderOpen(true)}
+                onAddToCart={handleAddToCart}
+                cartItemIds={cart.map((c) => c.id)}
+              />
             }
-          }}
-        />
+          />
 
-        {/* Real Student Graduate Portfolio Showcase */}
-        <StudentProjectsGallery />
+          {/* Dedicated Course Catalog Route */}
+          <Route
+            path="/courses"
+            element={
+              <CoursesPage
+                onAddToCart={handleAddToCart}
+                cartItemIds={cart.map((c) => c.id)}
+              />
+            }
+          />
 
-        {/* Achievements Counter */}
-        <StatsCounter />
+          {/* Dedicated Course Details Route */}
+          <Route
+            path="/courses/:courseId"
+            element={
+              <CourseDetailPage
+                onAddToCart={handleAddToCart}
+                cartItemIds={cart.map((c) => c.id)}
+              />
+            }
+          />
 
-        {/* Verified Student Reviews */}
-        <TestimonialSection />
+          {/* Checkout & Payment Gateway Route */}
+          <Route path="/checkout/:courseId" element={<CheckoutPage />} />
 
-        {/* SEO Informational Text & FAQ */}
-        <SeoContentSection />
-      </main>
+          {/* Protected Student Learning Classroom Route */}
+          <Route
+            path="/courses/:courseId/learn"
+            element={
+              <ProtectedRoute allowedRoles={['STUDENT', 'TEACHER', 'ADMIN']}>
+                <ClassroomPage />
+              </ProtectedRoute>
+            }
+          />
 
-      {/* Footer */}
-      <Footer onSelectCategory={setSelectedCategory} />
+          {/* Authentication Routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-      {/* Floating Support Assistant Chat Widget */}
-      <FloatingAssistant />
+          {/* Transactions Page */}
+          <Route path="/transactions" element={<TransactionsPage />} />
 
-      {/* Interactive Overlay Modals */}
-      <CourseDetailModal
-        course={activeCourseModal}
-        onClose={() => setActiveCourseModal(null)}
-        onAddToCart={handleAddToCart}
-        onOpenPayment={() => {
-          if (activeCourseModal) {
-            handleOpenPayment(activeCourseModal.price);
-          }
-        }}
-        isInCart={activeCourseModal ? cart.some((item) => item.id === activeCourseModal.id) : false}
-      />
+          {/* Protected Dashboards */}
+          <Route
+            path="/admin/*"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
 
+          <Route
+            path="/teacher/*"
+            element={
+              <ProtectedRoute allowedRoles={['TEACHER', 'ADMIN']}>
+                <TeacherDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/dashboard/*"
+            element={
+              <ProtectedRoute allowedRoles={['STUDENT', 'TEACHER', 'ADMIN']}>
+                <StudentDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Fallback 404 Route */}
+          <Route
+            path="*"
+            element={
+              <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-center space-y-4">
+                <div>
+                  <h2 className="text-3xl font-black text-[#0A192F]">404 - Page Not Found</h2>
+                  <p className="text-xs text-slate-500 mt-1">The requested route does not exist.</p>
+                  <button
+                    onClick={() => navigate('/')}
+                    className="mt-4 px-6 py-2.5 bg-brand-500 text-white rounded-xl text-xs font-bold shadow-md hover:bg-brand-600 transition"
+                  >
+                    Return to Homepage
+                  </button>
+                </div>
+              </div>
+            }
+          />
+        </Routes>
+      </div>
+
+      {/* Global Modals & Overlay Components */}
       <SearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
-        onSelectCourse={(course) => setActiveCourseModal(course)}
+        onSelectCourse={(course) => navigate(`/courses/${course.id}`)}
       />
 
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         cartItems={cart}
-        onRemoveFromCart={handleRemoveFromCart}
+        onRemoveItem={handleRemoveFromCart}
         onClearCart={handleClearCart}
-        onOpenPaymentModal={handleOpenPayment}
-      />
-
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-      />
-
-      <PaymentModal
-        isOpen={isPaymentOpen}
-        onClose={() => setIsPaymentOpen(false)}
-        cartItems={cart}
-        totalAmount={paymentTotal}
-        onPaymentSuccess={handlePaymentSuccess}
-      />
-
-      <CertificateShowcase
-        isOpen={isCertificateOpen}
-        onClose={() => setIsCertificateOpen(false)}
-      />
-
-      <DashboardPreviewModal
-        isOpen={isDashboardOpen}
-        onClose={() => setIsDashboardOpen(false)}
+        onOpenPayment={() => {
+          setIsCartOpen(false);
+          if (cart.length > 0) {
+            navigate(`/checkout/${cart[0].id}`);
+          } else {
+            navigate('/courses');
+          }
+        }}
       />
 
       <InteractiveCodePlayground
@@ -268,8 +254,11 @@ export function App() {
       <PathFinderModal
         isOpen={isPathFinderOpen}
         onClose={() => setIsPathFinderOpen(false)}
-        onSelectRecommendedCourse={(course) => setActiveCourseModal(course)}
+        onSelectCourse={(course) => navigate(`/courses/${course.id}`)}
       />
+
+      {/* Live AI Floating Assistant Support */}
+      <FloatingAssistant />
 
     </div>
   );
