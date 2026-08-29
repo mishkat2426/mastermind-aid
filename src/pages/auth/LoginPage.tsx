@@ -52,20 +52,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
     }
   }, [presetRole, location.pathname]);
 
-  // Set default seed credentials for quick testing
+  // Clean inputs on role switch
   useEffect(() => {
-    if (activeRole === 'ADMIN') {
-      setEmail('admin@mastermindaid.com');
-      setPassword('admin123');
-      setAccessCode('MASTERMIND ADMIN');
-    } else if (activeRole === 'TEACHER') {
-      setEmail('teacher@mastermindaid.com');
-      setPassword('teacher123');
-      setAccessCode('MASTERMIND10');
-    } else {
-      setEmail('student@mastermindaid.com');
-      setPassword('student123');
-    }
+    setEmail('');
+    setPassword('');
+    setAccessCode('');
+    setErrorMsg('');
   }, [activeRole]);
 
   const handleStudentSubmit = async (e: React.FormEvent) => {
