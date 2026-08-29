@@ -1,18 +1,21 @@
 export type UserRole = 'ADMIN' | 'TEACHER' | 'STUDENT';
+export type UserStatus = 'ACTIVE' | 'SUSPENDED';
 
 export interface User {
   id: string;
   name: string;
   email: string;
   role: UserRole;
+  status: UserStatus;
   avatar?: string;
   phone?: string;
   bio?: string;
+  isSoftDeleted?: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-export type CourseStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+export type CourseStatus = 'DRAFT' | 'PENDING_REVIEW' | 'PUBLISHED' | 'UNPUBLISHED' | 'ARCHIVED';
 export type CourseLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'All Levels';
 
 export interface Lesson {
@@ -25,6 +28,7 @@ export interface Lesson {
   order: number;
   isPreview?: boolean;
   resourcesUrl?: string;
+  isPublished?: boolean;
 }
 
 export interface Course {
@@ -92,6 +96,60 @@ export interface Transaction {
   approvedBy?: string;
 }
 
+export type ReviewStatus = 'PENDING' | 'PUBLISHED' | 'HIDDEN' | 'REJECTED';
+
+export interface Review {
+  id: string;
+  userId: string;
+  userName: string;
+  userAvatar?: string;
+  courseId: string;
+  courseTitle?: string;
+  rating: number; // 1 to 5
+  comment: string;
+  status: ReviewStatus;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export type CommentStatus = 'PUBLISHED' | 'HIDDEN' | 'REPORTED' | 'DELETED';
+export type ReportReason = 'Spam' | 'Harassment' | 'Offensive Content' | 'Irrelevant' | 'Other';
+
+export interface Comment {
+  id: string;
+  userId: string;
+  userName: string;
+  userAvatar?: string;
+  userRole: UserRole;
+  courseId: string;
+  lessonId?: string;
+  text: string;
+  status: CommentStatus;
+  reportCount: number;
+  reportReason?: ReportReason;
+  parentId?: string; // For nested replies
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  bengaliName: string;
+  description: string;
+  iconName: string;
+}
+
+export interface AuditLog {
+  id: string;
+  adminId: string;
+  adminName: string;
+  action: string;
+  resource: string;
+  resourceId: string;
+  timestamp: string;
+}
+
 export interface Assignment {
   id: string;
   courseId: string;
@@ -112,17 +170,6 @@ export interface Quiz {
   createdAt: string;
 }
 
-export interface Review {
-  id: string;
-  userId: string;
-  userName: string;
-  userAvatar?: string;
-  courseId: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
-}
-
 export interface Announcement {
   id: string;
   title: string;
@@ -140,4 +187,18 @@ export interface PlatformStats {
   totalEnrollments: number;
   totalRevenue: number;
   pendingTransactions: number;
+  pendingReviews: number;
+  reportedComments: number;
+}
+
+export interface RatingStats {
+  avgRating: number;
+  reviewCount: number;
+  distribution: {
+    5: number;
+    4: number;
+    3: number;
+    2: number;
+    1: number;
+  };
 }
