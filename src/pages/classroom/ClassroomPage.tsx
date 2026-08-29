@@ -144,21 +144,44 @@ export const ClassroomPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Downloadable Resources */}
-          <div className="bg-[#0B1E40] p-5 rounded-2xl border border-white/10 space-y-2">
+          {/* Downloadable PDF Resources */}
+          <div className="bg-[#0B1E40] p-5 rounded-2xl border border-white/10 space-y-3">
             <h4 className="text-xs font-black uppercase text-amber-300 tracking-wider flex items-center gap-1.5">
-              <Download className="w-4 h-4" /> Lecture Source Code & Exercise Files
+              <Download className="w-4 h-4" /> Downloadable Course PDFs & Exercise Resources
             </h4>
-            <p className="text-xs text-slate-300">
-              Download the source code files and exercise guides for this lecture.
-            </p>
-            <button
-              onClick={() => alert('Source code package downloaded!')}
-              className="mt-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-bold transition inline-flex items-center gap-1.5"
-            >
-              <FileText className="w-3.5 h-3.5" />
-              <span>Download Source Code (.ZIP)</span>
-            </button>
+            
+            {course.pdfResources && course.pdfResources.length > 0 ? (
+              <div className="grid sm:grid-cols-2 gap-2 pt-1">
+                {course.pdfResources.map((pdf) => (
+                  <a
+                    key={pdf.id}
+                    href={pdf.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-3 bg-[#071325] hover:bg-[#0A192F] rounded-xl border border-slate-700 text-xs font-bold text-white flex items-center justify-between transition group"
+                  >
+                    <div className="flex items-center gap-2 truncate">
+                      <FileText className="w-4 h-4 text-amber-400 shrink-0" />
+                      <span className="truncate">{pdf.title}</span>
+                    </div>
+                    <span className="text-[10px] text-brand-400 font-extrabold group-hover:underline shrink-0">Download PDF</span>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs text-slate-300">
+                  Download the source code files and exercise guides for this lecture.
+                </p>
+                <button
+                  onClick={() => alert('Source code package downloaded!')}
+                  className="mt-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-bold transition inline-flex items-center gap-1.5"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Download Source Code (.ZIP)</span>
+                </button>
+              </div>
+            )}
           </div>
 
         </div>

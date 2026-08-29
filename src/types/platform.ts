@@ -18,16 +18,27 @@ export interface User {
 export type CourseStatus = 'DRAFT' | 'PENDING_REVIEW' | 'PUBLISHED' | 'UNPUBLISHED' | 'ARCHIVED';
 export type CourseLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'All Levels';
 
+export interface PdfResource {
+  id: string;
+  title: string;
+  url: string;
+  fileSize?: string;
+  addedAt?: string;
+}
+
 export interface Lesson {
   id: string;
   courseId: string;
   title: string;
   description: string;
   videoUrl: string;
+  videoTitle?: string;
   duration: string;
   order: number;
   isPreview?: boolean;
   resourcesUrl?: string;
+  pdfTitle?: string;
+  imageUrl?: string;
   isPublished?: boolean;
 }
 
@@ -58,6 +69,7 @@ export interface Course {
   requirements: string[];
   features: string[];
   lessons: Lesson[];
+  pdfResources?: PdfResource[];
   createdAt: string;
   updatedAt: string;
 }

@@ -477,6 +477,81 @@ export class DBService {
     return true;
   }
 
+  // Lesson & Video Content Management
+  static addLessonToCourse(courseId: string, lesson: Omit<Lesson, 'id' | 'courseId'>, actorName?: string): Lesson | undefined {
+    const course = this.getCourseById(courseId);
+    if (!course) return undefined;
+
+    const newLesson: Lesson = {
+      ...lesson,
+      id: `les-${courseId}-${Date.now()}`,
+      courseId,
+      order: course.lessons.length + 1,
+      isPublished: true,
+    };
+
+    const updatedLessons = [...course.lessons, newLesson];
+    this.updateCourse(courseId, { 
+      lessons: updatedLessons,
+      lessonsCount: updatedLessons.length 
+    }, actorName);
+
+    return newLesson;
+  }
+
+  static updateLessonInCourse(courseId: string, lessonId: string, updates: Partial<Lesson>, actorName?: string): Lesson | undefined {
+    const course = this.getCourseById(courseId);
+    if (!course) return undefined;
+
+    const lessonIdx = course.lessons.findIndex((l) => l.id === lessonId);
+    if (lessonIdx === -1) return undefined;
+
+    const updatedLessons = [...course.lessons];
+    updatedLessons[lessonIdx] = { ...updatedLessons[lessonIdx], ...updates };
+
+    this.updateCourse(courseId, { lessons: updatedLessons }, actorName);
+    return updatedLessons[lessonIdx];
+  }
+
+  static deleteLessonFromCourse(courseId: string, lessonId: string, actorName?: string): boolean {
+    const course = this.getCourseById(courseId);
+    if (!course) return false;
+
+    const updatedLessons = course.lessons.filter((l) => l.id !== lessonId);
+    this.updateCourse(courseId, { 
+      lessons: updatedLessons,
+      lessonsCount: updatedLessons.length 
+    }, actorName);
+
+    return true;
+  }
+
+  // PDF Document Management
+  static addPdfResourceToCourse(courseId: string, pdf: { title: string; url: string; fileSize?: string }, actorName?: string): Course | undefined {
+    const course = this.getCourseById(courseId);
+    if (!course) return undefined;
+
+    const newPdf = {
+      id: `pdf-${Date.now()}`,
+      title: pdf.title,
+      url: pdf.url,
+      fileSize: pdf.fileSize || '1.5 MB',
+      addedAt: new Date().toISOString(),
+    };
+
+    const updatedPdfs = [...(course.pdfResources || []), newPdf];
+    return this.updateCourse(courseId, { pdfResources: updatedPdfs }, actorName);
+  }
+
+  static deletePdfResourceFromCourse(courseId: string, pdfId: string, actorName?: string): boolean {
+    const course = this.getCourseById(courseId);
+    if (!course) return false;
+
+    const updatedPdfs = (course.pdfResources || []).filter((p) => p.id !== pdfId);
+    this.updateCourse(courseId, { pdfResources: updatedPdfs }, actorName);
+    return true;
+  }
+
   static bulkUpdateCourseStatus(ids: string[], status: Course['status'], adminName: string): void {
     const courses = this.getCourses();
     courses.forEach((c) => {

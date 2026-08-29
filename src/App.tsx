@@ -93,7 +93,7 @@ export function App() {
   const cartTotal = cart.reduce((sum, item) => sum + (item.price || 0), 0);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col relative font-sans">
+    <div className="min-h-screen bg-slate-50 flex flex-col relative font-sans overflow-x-hidden">
       
       {/* Global Responsive Navbar */}
       <Navbar
