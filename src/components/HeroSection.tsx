@@ -21,7 +21,6 @@ import { DBService } from '../services/db';
 interface HeroSectionProps {
   onExploreCourses: () => void;
   onOpenPreview: () => void;
-  onOpenCodeEditor: () => void;
   onOpenPathFinder: () => void;
 }
 
@@ -49,7 +48,6 @@ const fadeUpVariant = (delay: number = 0) => ({
 export const HeroSection: React.FC<HeroSectionProps> = ({
   onExploreCourses,
   onOpenPreview,
-  onOpenCodeEditor,
   onOpenPathFinder,
 }) => {
   // Query actual real enrollments from database (Requirement #3 & #4: NO FAKE NAMES OR LOCATIONS)
@@ -179,14 +177,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               >
                 <Compass className="w-4 h-4 text-emerald-300" />
                 <span>AI Career PathFinder</span>
-              </button>
-
-              <button
-                onClick={onOpenCodeEditor}
-                className="w-full sm:w-auto px-5 py-3.5 bg-slate-900/80 hover:bg-slate-900 text-slate-300 hover:text-white border border-slate-700 font-extrabold text-xs rounded-2xl transition flex items-center justify-center gap-2"
-              >
-                <Code className="w-4 h-4 text-brand-400" />
-                <span>Live Code Editor</span>
               </button>
             </motion.div>
 

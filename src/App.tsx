@@ -30,7 +30,6 @@ import { StudentDashboard } from './pages/student/StudentDashboard';
 // Modals & Floating Tools
 import { SearchModal } from './components/SearchModal';
 import { CartDrawer } from './components/CartDrawer';
-import { InteractiveCodePlayground } from './components/InteractiveCodePlayground';
 import { PathFinderModal } from './components/PathFinderModal';
 import { FloatingAssistant } from './components/FloatingAssistant';
 
@@ -55,7 +54,6 @@ export function App() {
 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isCodeEditorOpen, setIsCodeEditorOpen] = useState(false);
   const [isPathFinderOpen, setIsPathFinderOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -122,7 +120,6 @@ export function App() {
             path="/"
             element={
               <HomePage
-                onOpenCodeEditor={() => setIsCodeEditorOpen(true)}
                 onOpenPathFinder={() => setIsPathFinderOpen(true)}
                 onAddToCart={handleAddToCart}
                 cartItemIds={cart.map((c) => c.id)}
@@ -246,11 +243,6 @@ export function App() {
             navigate('/courses');
           }
         }}
-      />
-
-      <InteractiveCodePlayground
-        isOpen={isCodeEditorOpen}
-        onClose={() => setIsCodeEditorOpen(false)}
       />
 
       <PathFinderModal

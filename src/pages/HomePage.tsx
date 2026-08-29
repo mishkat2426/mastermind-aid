@@ -16,14 +16,12 @@ import { DBService } from '../services/db';
 import { ScrollReveal } from '../components/ScrollReveal';
 
 interface HomePageProps {
-  onOpenCodeEditor: () => void;
   onOpenPathFinder: () => void;
   onAddToCart: (course: any) => void;
   cartItemIds: string[];
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
-  onOpenCodeEditor,
   onOpenPathFinder,
 }) => {
   const navigate = useNavigate();
@@ -35,7 +33,6 @@ export const HomePage: React.FC<HomePageProps> = ({
       <HeroSection
         onExploreCourses={() => navigate('/courses')}
         onOpenPreview={() => navigate('/courses')}
-        onOpenCodeEditor={onOpenCodeEditor}
         onOpenPathFinder={onOpenPathFinder}
       />
 
