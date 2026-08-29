@@ -174,7 +174,7 @@ export function App() {
           <Route
             path="/transactions"
             element={
-              <ProtectedRoute allowedRoles={['STUDENT', 'TEACHER', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['STUDENT', 'ADMIN']}>
                 <TransactionsPage />
               </ProtectedRoute>
             }

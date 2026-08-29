@@ -12,7 +12,10 @@ import {
   Layout, 
   Sparkles,
   BookOpen,
-  CreditCard
+  CreditCard,
+  UserCheck,
+  ReceiptText,
+  UserPlus
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { playUiClickSound } from './SoundEffects';
@@ -44,7 +47,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const navLinks = [
     { label: 'Home', path: '/' },
     { label: 'Courses', path: '/courses' },
-    ...(isAuthenticated ? [{ label: 'Transactions', path: '/transactions' }] : []),
+    ...(isAuthenticated && currentUser?.role !== 'TEACHER' ? [{ label: 'Transactions', path: '/transactions' }] : []),
   ];
 
   return (
@@ -82,15 +85,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                   key={link.path}
                   to={link.path}
                   onClick={() => playUiClickSound()}
-                  className={`transition-colors relative py-1 ${
-                    isActive ? 'text-brand-400 font-black' : 'text-slate-300 hover:text-white'
+                  className={`relative py-2 transition-colors duration-200 ${
+                    isActive ? 'text-brand-400' : 'text-slate-300 hover:text-white'
                   }`}
                 >
                   {link.label}
                   {isActive && (
                     <motion.div
-                      layoutId="navbarIndicator"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-400 rounded-full"
+                      layoutId="activeNavIndicator"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-500 rounded-full shadow-[0_0_8px_#0D5FF9]"
                     />
                   )}
                 </Link>
@@ -98,144 +101,144 @@ export const Navbar: React.FC<NavbarProps> = ({
             })}
           </nav>
 
-          {/* Right Action Icons (Compact & Mobile-Optimized: [ Search ] [ Cart ] [ Login/Profile ] [ Menu ]) */}
+          {/* Action Center (Icons, Cart, Auth) */}
           <div className="flex items-center gap-1.5 sm:gap-3">
             
-            {/* Search Modal Trigger */}
+            {/* Quick Global Search Icon */}
             <button
               onClick={() => {
                 playUiClickSound();
                 onOpenSearch();
               }}
-              className="p-2 sm:p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white transition"
-              title="Search Courses"
-              aria-label="Search Courses"
+              className="p-2 sm:p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition border border-white/5"
+              aria-label="Search Academy Courses"
             >
               <Search className="w-4 h-4" />
             </button>
 
-            {/* Shopping Cart Drawer Trigger */}
+            {/* Smart Cart Icon with Badge */}
             <button
               onClick={() => {
                 playUiClickSound();
                 onOpenCart();
               }}
-              className="p-2 sm:p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white transition relative"
-              title="Shopping Cart"
-              aria-label="Shopping Cart"
+              className="relative p-2 sm:p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition border border-white/5"
+              aria-label="View Shopping Cart"
             >
               <ShoppingCart className="w-4 h-4" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 w-4 h-4 sm:w-5 sm:h-5 bg-brand-500 text-white rounded-full font-black text-[9px] sm:text-[10px] flex items-center justify-center ring-2 ring-[#0A192F]">
+                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-brand-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-lg animate-pulse">
                   {cartCount}
                 </span>
               )}
             </button>
 
-            {/* Auth State / Profile / Login CTA Button */}
+            {/* User Profile / Dashboard / Login Action */}
             {isAuthenticated && currentUser ? (
               <div className="relative">
                 <button
                   onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                  className="flex items-center gap-1.5 p-1 pr-2 sm:p-1.5 sm:pr-3 rounded-full bg-white/10 hover:bg-white/20 transition ring-2 ring-brand-400/40"
+                  className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition"
                 >
                   <img
-                    src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb'}
+                    src={currentUser.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80'}
                     alt={currentUser.name}
-                    className="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-cover ring-2 ring-brand-500/50"
                   />
-                  <span className="text-[11px] sm:text-xs font-extrabold hidden sm:inline">{currentUser.name.split(' ')[0]}</span>
-                  <span className="text-[8px] sm:text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-brand-500 text-white">
-                    {currentUser.role}
-                  </span>
+                  <div className="hidden sm:flex flex-col text-left">
+                    <span className="text-xs font-bold text-white max-w-[100px] truncate leading-tight">
+                      {currentUser.name}
+                    </span>
+                    <span className="text-[9px] font-extrabold uppercase text-brand-400 tracking-wider">
+                      {currentUser.role}
+                    </span>
+                  </div>
                 </button>
 
-                {/* User Dropdown Menu */}
-                <AnimatePresence>
-                  {isUserDropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 mt-2 w-56 bg-[#0B1B33] rounded-2xl shadow-2xl border border-slate-700/80 p-2 text-xs font-bold space-y-1 z-50"
-                    >
-                      <div className="p-3 bg-white/5 rounded-xl border border-white/10 mb-2">
-                        <div className="font-bold text-white truncate">{currentUser.name}</div>
-                        <div className="text-[10px] text-slate-400 font-medium truncate">{currentUser.email}</div>
+                {/* Dropdown Menu */}
+                {isUserDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-[#0B1B33] border border-slate-700/80 rounded-2xl shadow-2xl p-2 z-50 text-xs font-bold divide-y divide-slate-800">
+                    <div className="p-3">
+                      <div className="text-white truncate">{currentUser.name}</div>
+                      <div className="text-[10px] text-slate-400 truncate">{currentUser.email}</div>
+                      <div className="mt-1.5">
+                        <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-brand-500/20 text-brand-300 border border-brand-400/30">
+                          {currentUser.role} Access
+                        </span>
                       </div>
+                    </div>
 
-                      <button
-                        onClick={() => {
-                          setIsUserDropdownOpen(false);
-                          navigate(getDashboardPath());
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-slate-200 hover:bg-white/10 rounded-xl transition"
+                    <div className="py-1 space-y-1">
+                      <Link
+                        to={getDashboardPath()}
+                        onClick={() => setIsUserDropdownOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 transition"
                       >
-                        <Layout className="w-4 h-4 text-brand-400" />
-                        <span>Go to {currentUser.role} Dashboard</span>
-                      </button>
+                        <UserCheck className="w-4 h-4 text-brand-400" />
+                        <span>My Dashboard</span>
+                      </Link>
 
+                      {currentUser.role !== 'TEACHER' && (
+                        <Link
+                          to="/transactions"
+                          onClick={() => setIsUserDropdownOpen(false)}
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 transition"
+                        >
+                          <ReceiptText className="w-4 h-4 text-emerald-400" />
+                          <span>My Transactions</span>
+                        </Link>
+                      )}
+                    </div>
+
+                    <div className="pt-1">
                       <button
                         onClick={() => {
-                          setIsUserDropdownOpen(false);
-                          navigate('/transactions');
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-slate-200 hover:bg-white/10 rounded-xl transition"
-                      >
-                        <CreditCard className="w-4 h-4 text-emerald-400" />
-                        <span>Transactions Ledger</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setIsUserDropdownOpen(false);
                           logout();
+                          setIsUserDropdownOpen(false);
+                          navigate('/');
                         }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-rose-400 hover:bg-rose-500/10 rounded-xl transition border-t border-slate-800"
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-rose-400 hover:bg-rose-500/10 transition text-left"
                       >
                         <LogOut className="w-4 h-4" />
                         <span>Sign Out</span>
                       </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <Link
                   to="/login"
                   onClick={() => playUiClickSound()}
-                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-extrabold transition shrink-0"
+                  className="px-3 sm:px-4 py-2 rounded-xl text-xs font-extrabold text-slate-300 hover:text-white hover:bg-white/5 transition"
                 >
                   Log In
                 </Link>
                 <Link
                   to="/register"
                   onClick={() => playUiClickSound()}
-                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white rounded-xl text-xs font-black shadow-md shadow-brand-500/20 transition shrink-0"
+                  className="px-3 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-black text-xs shadow-lg shadow-brand-500/30 transition flex items-center gap-1"
                 >
-                  Sign Up
+                  <UserPlus className="w-3.5 h-3.5 text-amber-300" />
+                  <span>Sign Up</span>
                 </Link>
               </div>
             )}
 
-            {/* Mobile Hamburger Menu Drawer Toggle */}
+            {/* Mobile Hamburger Toggle Button */}
             <button
               onClick={() => {
                 playUiClickSound();
                 setIsMobileMenuOpen(!isMobileMenuOpen);
               }}
-              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white transition md:hidden"
-              title="Toggle Navigation Menu"
+              className="md:hidden p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition border border-white/5"
               aria-label="Toggle Navigation Menu"
             >
               {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>
-
           </div>
-
         </div>
-
       </div>
 
       {/* Mobile Drawer Menu Overlay */}
@@ -263,23 +266,75 @@ export const Navbar: React.FC<NavbarProps> = ({
               </Link>
             ))}
 
-            <div className="pt-2 border-t border-slate-800 space-y-2">
-              <Link
-                to="/teacher/login"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-4 py-2 text-slate-400 hover:text-emerald-400 text-[11px] lowercase"
-              >
-                Instructor Portal Login →
-              </Link>
+            {isAuthenticated && currentUser ? (
+              <div className="pt-2 border-t border-slate-800 space-y-2">
+                <div className="px-4 py-2 bg-white/5 rounded-xl flex items-center gap-2">
+                  <img
+                    src={currentUser.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80'}
+                    alt={currentUser.name}
+                    className="w-7 h-7 rounded-lg object-cover"
+                  />
+                  <div className="truncate">
+                    <div className="text-white text-xs font-bold truncate">{currentUser.name}</div>
+                    <div className="text-[10px] text-brand-400 font-bold">{currentUser.role}</div>
+                  </div>
+                </div>
 
-              <Link
-                to="/admin/login"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-4 py-2 text-slate-400 hover:text-purple-400 text-[11px] lowercase"
-              >
-                Admin Portal Login →
-              </Link>
-            </div>
+                <Link
+                  to={getDashboardPath()}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block px-4 py-2 text-brand-300 hover:bg-white/5 rounded-xl text-xs lowercase"
+                >
+                  → Go to My Dashboard
+                </Link>
+
+                <button
+                  onClick={() => {
+                    logout();
+                    setIsMobileMenuOpen(false);
+                    navigate('/');
+                  }}
+                  className="w-full text-left px-4 py-2 text-rose-400 hover:bg-rose-500/10 rounded-xl text-xs"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <div className="pt-2 border-t border-slate-800 space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <Link
+                    to="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="py-2.5 text-center bg-white/10 text-white rounded-xl text-xs font-bold"
+                  >
+                    Log In
+                  </Link>
+                  <Link
+                    to="/register"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="py-2.5 text-center bg-brand-500 text-white rounded-xl text-xs font-bold"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+
+                <Link
+                  to="/teacher/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block px-4 py-2 text-slate-400 hover:text-emerald-400 text-[11px] lowercase"
+                >
+                  Instructor Portal Login →
+                </Link>
+
+                <Link
+                  to="/admin/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block px-4 py-2 text-slate-400 hover:text-purple-400 text-[11px] lowercase"
+                >
+                  Admin Portal Login →
+                </Link>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

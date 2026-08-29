@@ -133,7 +133,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-brand-400 shrink-0" />
-                <a href="mailto:support@mastermindaid.com" className="hover:text-white transition">support@mastermindaid.com</a>
+                <a href="mailto:support@mastermindaidt.com" className="hover:text-white transition">support@mastermindaidt.com</a>
               </li>
             </ul>
           </div>

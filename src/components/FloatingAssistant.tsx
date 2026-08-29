@@ -21,7 +21,7 @@ export const FloatingAssistant: React.FC = () => {
     {
       id: 'init-1',
       sender: 'bot',
-      text: 'আসসালামু আলাইকুম! Mastermind Aid AI অ্যাসিস্ট্যান্ট থেকে আপনাকে স্বাগতম। আপনার কি ধরনের প্রশ্ন বা কোর্স সাহায্য প্রয়োজন?',
+      text: 'আসসালামু আলাইকুম! MASTERMIND AIDT AI অ্যাসিস্ট্যান্ট থেকে আপনাকে স্বাগতম। আপনার কি ধরনের প্রশ্ন বা কোর্স সাহায্য প্রয়োজন?',
     },
   ]);
   const [inputMsg, setInputMsg] = useState('');
@@ -85,7 +85,7 @@ export const FloatingAssistant: React.FC = () => {
             sender: 'bot',
             text: 'Oops — MasterMind lost the connection.',
             isError: true,
-            rawError: 'ERR_NET_TIMEOUT: Failed to reach api.mastermindaid.com/v1/chat',
+            rawError: 'ERR_NET_TIMEOUT: Failed to reach api.mastermindaidt.com/v1/chat',
           },
         ]);
       }, 1000);
@@ -98,13 +98,13 @@ export const FloatingAssistant: React.FC = () => {
     }, 600);
 
     setTimeout(() => {
-      setStatusText('MasterMind is generating...');
+      setStatusText('MASTERMIND AIDT is generating...');
 
       let botReply =
         'ধন্যবাদ আপনার মেসেজের জন্য! আমাদের প্রতিনিধি খুব শীঘ্রই আপনার সাথে যোগাযোগ করবেন। অথবা সরাসরি +880 1712-949410 নম্বরে কল করুন।';
       if (userText.includes('ফ্রি') || userText.includes('ফ্রিতে')) {
         botReply =
-          'Mastermind Aid প্ল্যাটফর্মে ওয়ার্ডপ্রেস প্লাগইন ডেভেলপমেন্ট, ফাইভার ফ্রিল্যান্সিং এবং রেসপন্সিভ ওয়েব ডিজাইন সম্পূর্ণ ফ্রিতে পাচ্ছেন! যেকোনো ফ্রি কোর্সে ক্লিক করে সাথে সাথে দেখা শুরু করুন।';
+          'MASTERMIND AIDT প্ল্যাটফর্মে ওয়ার্ডপ্রেস প্লাগইন ডেভেলপমেন্ট, ফাইভার ফ্রিল্যান্সিং এবং রেসপন্সিভ ওয়েব ডিজাইন সম্পূর্ণ ফ্রিতে পাচ্ছেন! যেকোনো ফ্রি কোর্সে ক্লিক করে সাথে সাথে দেখা শুরু করুন।';
       } else if (userText.includes('পেমেন্ট') || userText.includes('টাকা')) {
         botReply =
           'আমাদের প্ল্যাটফর্মে বিকাশ (bKash), নগদ (Nagad), রকেট (Rocket) এবং কার্ড পেমেন্টের মাধ্যমে খুব সহজেই ইন্সট্যান্ট কোর্স অ্যাক্টিভেশন করতে পারবেন।';
@@ -168,11 +168,11 @@ export const FloatingAssistant: React.FC = () => {
 
                 <div>
                   <h4 className="text-sm font-extrabold flex items-center gap-1">
-                    <span>MasterMind AI</span>
+                    <span>MASTERMIND AIDT AI</span>
                     <CheckCircle2 className="w-3.5 h-3.5 text-brand-400" />
                   </h4>
                   <p className="text-[10px] text-slate-300 font-semibold">
-                    Mastermind Aid Support Advisor
+                    MASTERMIND AIDT Support Advisor
                   </p>
                 </div>
               </div>

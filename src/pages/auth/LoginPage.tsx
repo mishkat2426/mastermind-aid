@@ -65,12 +65,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
     e.preventDefault();
     setErrorMsg('');
 
-    if (!email.trim()) {
-      setErrorMsg('Please enter your email address.');
+    if (!email.trim() || !password.trim()) {
+      setErrorMsg('Please enter both your email address and password.');
       return;
     }
 
-    const result = await login(email, 'STUDENT');
+    const result = await login(email, password, 'STUDENT');
     if (result.success && result.user) {
       if (from) navigate(from, { replace: true });
       else navigate('/dashboard');
@@ -263,14 +263,22 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-              <div className="pt-4 border-t border-slate-800/80 text-center space-y-2">
-                <div className="text-xs text-slate-400 font-medium">New student to MASTERMIND AIDT?</div>
+              <div className="pt-4 border-t border-slate-800/80 text-center space-y-2.5">
+                <p className="text-xs text-slate-400 font-medium">
+                  Don't have an account?{' '}
+                  <Link
+                    to="/register"
+                    className="font-extrabold text-brand-400 hover:text-brand-300 transition hover:underline"
+                  >
+                    Sign Up
+                  </Link>
+                </p>
                 <Link
                   to="/register"
-                  className="w-full py-3 bg-brand-500/20 hover:bg-brand-500/30 text-brand-300 font-extrabold text-xs rounded-2xl border border-brand-400/40 flex items-center justify-center gap-2 transition shadow-md"
+                  className="w-full py-2.5 bg-brand-500/20 hover:bg-brand-500/30 text-brand-300 font-extrabold text-xs rounded-xl border border-brand-400/40 flex items-center justify-center gap-2 transition shadow-md"
                 >
                   <UserPlus className="w-4 h-4 text-amber-300" />
-                  <span>Create Free Account (Sign Up) →</span>
+                  <span>Create Account (Sign Up) →</span>
                 </Link>
               </div>
             </form>

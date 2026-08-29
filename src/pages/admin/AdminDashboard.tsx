@@ -877,7 +877,7 @@ export const AdminDashboard: React.FC = () => {
                 <input
                   type="email"
                   required
-                  placeholder="admin@mastermindaid.com"
+                  placeholder="admin@mastermindaidt.com"
                   value={newAdminEmail}
                   onChange={(e) => setNewAdminEmail(e.target.value)}
                   className="px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"

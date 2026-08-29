@@ -1,18 +1,18 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserRole } from '../types/platform';
-import { DBService } from '../services/db';
+import { DBService, hashSecretSync } from '../services/db';
 
 interface AuthContextType {
   currentUser: User | null;
   role: UserRole | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, role?: UserRole) => Promise<{ success: boolean; user?: User; error?: string }>;
+  login: (email: string, password?: string, role?: UserRole) => Promise<{ success: boolean; user?: User; error?: string }>;
   loginTeacher: (email: string, password: string, teacherAccessCode?: string) => Promise<{ success: boolean; user?: User; error?: string }>;
   loginAdmin: (email: string, password: string, adminSecurityCode: string) => Promise<{ success: boolean; user?: User; error?: string }>;
   activateTeacher: (name: string, email: string, phone: string, password: string, teacherAccessCode: string) => Promise<{ success: boolean; user?: User; error?: string }>;
   createAdminAccount: (name: string, email: string) => Promise<{ success: boolean; user?: User; error?: string }>;
-  register: (name: string, email: string, role: UserRole) => Promise<{ success: boolean; user?: User; error?: string }>;
+  register: (name: string, email: string, password?: string, role?: UserRole) => Promise<{ success: boolean; user?: User; error?: string }>;
   logout: () => void;
   forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
   resetPassword: (email: string) => Promise<{ success: boolean; message: string }>;
@@ -51,25 +51,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (
     email: string,
+    password?: string,
     requestedRole?: UserRole
   ): Promise<{ success: boolean; user?: User; error?: string }> => {
     setIsLoading(true);
     await new Promise((res) => setTimeout(res, 400));
 
-    let user = DBService.getUserByEmail(email);
+    const cleanEmail = email.trim().toLowerCase();
+    const user = DBService.getUserByEmail(cleanEmail);
 
     if (!user) {
-      user = DBService.createUser({
-        name: email.split('@')[0],
-        email,
-        role: requestedRole || 'STUDENT',
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
-      });
+      setIsLoading(false);
+      return {
+        success: false,
+        error: 'No account found with this email. Please click "Sign Up" to create an account.',
+      };
     }
 
     if (user.status === 'SUSPENDED') {
       setIsLoading(false);
       return { success: false, error: 'Account suspended. Please contact platform support.' };
+    }
+
+    // Secure password verification
+    if (user.passwordHash && password) {
+      const inputHash = hashSecretSync(password);
+      if (inputHash !== user.passwordHash) {
+        setIsLoading(false);
+        return { success: false, error: 'Incorrect password. Please try again.' };
+      }
+    }
+
+    // Role verification
+    if (requestedRole === 'STUDENT' && user.role !== 'STUDENT') {
+      // Allow multi-role preview if teacher or admin tests student dashboard
     }
 
     setCurrentUser(user);
@@ -146,21 +161,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (
     name: string,
     email: string,
-    role: UserRole
+    password?: string,
+    role: UserRole = 'STUDENT'
   ): Promise<{ success: boolean; user?: User; error?: string }> => {
     setIsLoading(true);
     await new Promise((res) => setTimeout(res, 500));
 
-    const existing = DBService.getUserByEmail(email);
+    const cleanName = name.trim();
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanName) {
+      setIsLoading(false);
+      return { success: false, error: 'Full name is required.' };
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      setIsLoading(false);
+      return { success: false, error: 'Please enter a valid email address format.' };
+    }
+
+    if (!password || password.length < 6) {
+      setIsLoading(false);
+      return { success: false, error: 'Password must be at least 6 characters long.' };
+    }
+
+    const existing = DBService.getUserByEmail(cleanEmail);
     if (existing) {
       setIsLoading(false);
-      return { success: false, error: 'An account with this email already exists.' };
+      return { success: false, error: 'An account with this email already exists. Please log in.' };
     }
 
     const newUser = DBService.createUser({
-      name,
-      email,
+      name: cleanName,
+      email: cleanEmail,
       role,
+      passwordHash: hashSecretSync(password),
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
     });
 

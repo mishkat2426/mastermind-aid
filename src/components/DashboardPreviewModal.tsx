@@ -170,7 +170,7 @@ export const DashboardPreviewModal: React.FC<DashboardPreviewModalProps> = ({ is
           {/* Footer Bar */}
           <div className="p-4 px-6 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
             <div className="text-xs text-slate-500 font-medium">
-              Demo Portal • All Mastermind Aid Enrolled Students get 24/7 Access
+              Demo Portal • All MASTERMIND AIDT Enrolled Students get 24/7 Access
             </div>
 
             <button

@@ -10,6 +10,7 @@ export interface User {
   avatar?: string;
   phone?: string;
   bio?: string;
+  passwordHash?: string;
   isSoftDeleted?: boolean;
   createdAt: string;
   updatedAt: string;

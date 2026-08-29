@@ -14,9 +14,9 @@ export const TransactionsPage: React.FC = () => {
   const [search, setSearch] = useState('');
 
   const allTransactions = isAdmin
-    ? DBService.getTransactions()
-    : currentUser
-    ? DBService.getTransactionsByUserId(currentUser.id)
+    ? DBService.getTransactions('ADMIN')
+    : currentUser && currentUser.role === 'STUDENT'
+    ? DBService.getTransactionsByUserId(currentUser.id, currentUser.id)
     : [];
 
   const filteredTransactions = allTransactions.filter((t) => {
@@ -33,6 +33,7 @@ export const TransactionsPage: React.FC = () => {
   });
 
   const handleUpdateStatus = (trxId: string, status: TransactionStatus) => {
+    if (!isAdmin) return;
     DBService.updateTransactionStatus(trxId, status, currentUser?.name || 'Admin');
     window.location.reload();
   };
@@ -83,6 +84,30 @@ export const TransactionsPage: React.FC = () => {
           <div className="pt-2 border-t border-slate-800">
             <Link to="/" className="text-xs text-brand-400 hover:underline font-bold">
               ← Return to MASTERMIND AIDT Homepage
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentUser?.role === 'TEACHER') {
+    return (
+      <div className="min-h-screen bg-[#0A192F] text-white flex flex-col justify-center items-center py-16 px-4 font-sans relative overflow-hidden">
+        <div className="max-w-md w-full bg-[#0B1B33]/90 backdrop-blur-xl p-8 rounded-3xl border border-rose-500/40 shadow-2xl space-y-5 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center mx-auto shadow-xl">
+            <ShieldCheck className="w-9 h-9 stroke-[2]" />
+          </div>
+          <h2 className="text-xl font-black">Access Denied</h2>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            Instructor accounts do not have authorization to access platform financial transactions. Please visit your Instructor CMS Dashboard to manage your courses.
+          </p>
+          <div className="pt-2">
+            <Link
+              to="/teacher/dashboard"
+              className="inline-block py-3 px-6 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-lg transition"
+            >
+              Go to Instructor Dashboard →
             </Link>
           </div>
         </div>

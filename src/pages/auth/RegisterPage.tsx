@@ -35,7 +35,7 @@ export const RegisterPage: React.FC = () => {
       return;
     }
 
-    const result = await register(name, email, role);
+    const result = await register(name, email, password, role);
     if (result.success && result.user) {
       if (role === 'ADMIN') navigate('/admin/dashboard');
       else if (role === 'TEACHER') navigate('/teacher/dashboard');

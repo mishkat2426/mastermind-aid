@@ -252,7 +252,7 @@ export const CheckoutPage: React.FC = () => {
                 </div>
 
                 <div className="text-[10px] text-slate-400 leading-relaxed font-medium">
-                  By clicking complete checkout, you agree to Mastermind Aid's Terms of Service and Refund Policy.
+                  By clicking complete checkout, you agree to MASTERMIND AIDT's Terms of Service and Refund Policy.
                 </div>
               </div>
 

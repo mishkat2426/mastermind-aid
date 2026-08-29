@@ -26,7 +26,7 @@ export const StudentDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'my-courses' | 'progress' | 'transactions' | 'certificates' | 'profile'>('my-courses');
 
   const enrollments = currentUser ? DBService.getEnrollmentsByUserId(currentUser.id) : [];
-  const transactions = currentUser ? DBService.getTransactionsByUserId(currentUser.id) : [];
+  const transactions = currentUser ? DBService.getTransactionsByUserId(currentUser.id, currentUser.id) : [];
 
   const completedCount = enrollments.filter((e) => e.status === 'COMPLETED').length;
   const activeCount = enrollments.filter((e) => e.status === 'ACTIVE').length;

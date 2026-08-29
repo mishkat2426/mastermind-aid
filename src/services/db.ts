@@ -1,5 +1,6 @@
 import { 
   User, 
+  UserRole,
   Course, 
   Lesson, 
   Enrollment, 
@@ -41,13 +42,14 @@ const STORAGE_KEYS = {
 const INITIAL_USERS: User[] = [
   {
     id: 'usr-admin-1',
-    name: 'Mastermind Admin',
+    name: 'MASTERMIND AIDT Admin',
     email: 'admin@mastermindaid.com',
     role: 'ADMIN',
     status: 'ACTIVE',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
     phone: '+880 1712-949410',
-    bio: 'Platform Administrator & Chief Architect at Mastermind Aid.',
+    bio: 'Platform Administrator & Chief Architect at MASTERMIND AIDT.',
+    passwordHash: hashSecretSync('password123'),
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
   },
@@ -60,6 +62,7 @@ const INITIAL_USERS: User[] = [
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
     phone: '+880 1812-345678',
     bio: 'Lead WordPress & Digital Marketing Instructor with 10+ years experience.',
+    passwordHash: hashSecretSync('password123'),
     createdAt: '2026-01-05T00:00:00.000Z',
     updatedAt: '2026-01-05T00:00:00.000Z',
   },
@@ -72,6 +75,7 @@ const INITIAL_USERS: User[] = [
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
     phone: '+880 1912-876543',
     bio: 'Enthusiastic Web Development Learner from Dhaka.',
+    passwordHash: hashSecretSync('password123'),
     createdAt: '2026-02-01T00:00:00.000Z',
     updatedAt: '2026-02-01T00:00:00.000Z',
   },
@@ -181,7 +185,7 @@ function saveData<T>(key: string, data: T): void {
 }
 
 // Pure SHA-256 digest helper for secure credential hashing
-function hashSecretSync(ascii: string): string {
+export function hashSecretSync(ascii: string): string {
   const mathPow = Math.pow;
   const maxWord = mathPow(2, 32);
   let i: number, j: number;
@@ -901,12 +905,18 @@ export class DBService {
     saveData(STORAGE_KEYS.AUDIT_LOGS, logs);
   }
 
-  // Transactions
-  static getTransactions(): Transaction[] {
+  static getTransactions(adminCallerRole?: UserRole): Transaction[] {
+    if (adminCallerRole && adminCallerRole !== 'ADMIN') {
+      return [];
+    }
     return loadData<Transaction[]>(STORAGE_KEYS.TRANSACTIONS, []);
   }
 
-  static getTransactionsByUserId(userId: string): Transaction[] {
+  static getTransactionsByUserId(userId: string, requestingUserId?: string): Transaction[] {
+    // IDOR Protection: If requestingUserId is supplied and differs, deny access
+    if (requestingUserId && requestingUserId !== userId) {
+      return [];
+    }
     return this.getTransactions().filter((t) => t.userId === userId);
   }
 
@@ -1124,37 +1134,37 @@ export const DEFAULT_WEBSITE_CONTENT: WebsiteContentItem[] = [
     description: 'Master WordPress plugin creation, freelancing, and digital marketing with 100% practical projects, verified certificates, and direct instructor support.',
     mediaType: 'IMAGE',
     mediaUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80',
-    altText: 'Mastermind Aidt Student Learning Dashboard',
+    altText: 'MASTERMIND AIDT Student Learning Dashboard',
     buttonText: 'Explore All Courses',
     buttonUrl: '/courses',
     updatedAt: '2026-01-01T00:00:00.000Z',
-    updatedBy: 'Mastermind Admin',
+    updatedBy: 'MASTERMIND AIDT Admin',
   },
   {
     id: 'wc-2',
     locationKey: 'homepage_promo_video',
     sectionName: 'Homepage Promotional Video',
-    title: 'Discover How Mastermind Aidt Empowers Your Career',
+    title: 'Discover How MASTERMIND AIDT Empowers Your Career',
     description: 'Watch this 3-minute intro video explaining our practical project-based learning model and student success stories in Bangladesh.',
     mediaType: 'VIDEO',
     mediaUrl: 'https://www.youtube.com/embed/uCvNsKvIHgg',
-    altText: 'Mastermind Aidt Intro Promo Video',
+    altText: 'MASTERMIND AIDT Intro Promo Video',
     buttonText: 'Watch Video',
     buttonUrl: '',
     updatedAt: '2026-01-01T00:00:00.000Z',
-    updatedBy: 'Mastermind Admin',
+    updatedBy: 'MASTERMIND AIDT Admin',
   },
   {
     id: 'wc-3',
     locationKey: 'about_section',
     sectionName: 'Homepage About & Vision',
     title: 'Empowering 17,000+ Bangladeshi Students Since 2024',
-    description: 'Mastermind Aidt provides accessible, career-ready e-learning programs with direct mentor feedback, live Q&A sessions, and freelance contract assistance.',
+    description: 'MASTERMIND AIDT provides accessible, career-ready e-learning programs with direct mentor feedback, live Q&A sessions, and freelance contract assistance.',
     mediaType: 'IMAGE',
     mediaUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1000&q=80',
-    altText: 'Mastermind Aidt Classroom Vision',
+    altText: 'MASTERMIND AIDT Classroom Vision',
     updatedAt: '2026-01-01T00:00:00.000Z',
-    updatedBy: 'Mastermind Admin',
+    updatedBy: 'MASTERMIND AIDT Admin',
   },
   {
     id: 'wc-4',
@@ -1168,6 +1178,6 @@ export const DEFAULT_WEBSITE_CONTENT: WebsiteContentItem[] = [
     buttonText: 'Explore All Courses →',
     buttonUrl: '/courses',
     updatedAt: '2026-01-01T00:00:00.000Z',
-    updatedBy: 'Mastermind Admin',
+    updatedBy: 'MASTERMIND AIDT Admin',
   },
 ];

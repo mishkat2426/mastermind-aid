@@ -68,11 +68,11 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
               className="space-y-1"
             >
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight flex items-center gap-1.5 justify-center">
-                Mastermind <span className="text-brand-400">Aid</span>
+                MASTERMIND <span className="text-brand-400">AIDT</span>
               </h1>
               <p className="text-xs text-slate-400 font-medium tracking-widest uppercase flex items-center justify-center gap-1">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                মাসটারমাইন্ড এইড • Elevating Skills in Bangladesh
+                মাস্টারমাইন্ড এইডটি • Elevating Skills in Bangladesh
               </p>
             </motion.div>
 
