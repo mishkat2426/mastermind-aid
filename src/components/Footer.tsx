@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { 
   BrainCircuit, 
   Mail, 
@@ -93,11 +94,11 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
           <div className="lg:col-span-2 space-y-3">
             <h4 className="text-sm font-extrabold uppercase tracking-wider text-amber-400">Quick Links</h4>
             <ul className="space-y-2 text-xs text-slate-300 font-medium">
-              <li><a href="#" className="hover:text-brand-400 transition">All Courses</a></li>
-              <li><a href="#" className="hover:text-brand-400 transition">Free Courses</a></li>
-              <li><a href="#" className="hover:text-brand-400 transition">Verify Certificate</a></li>
-              <li><a href="#" className="hover:text-brand-400 transition">Student Portal</a></li>
-              <li><a href="#" className="hover:text-brand-400 transition">Instructor Bios</a></li>
+              <li><Link to="/courses" className="hover:text-brand-400 transition">Course Catalog</Link></li>
+              <li><Link to="/dashboard" className="hover:text-brand-400 transition">Student Portal</Link></li>
+              <li><Link to="/transactions" className="hover:text-brand-400 transition">Transactions Ledger</Link></li>
+              <li><Link to="/teacher/login" className="hover:text-brand-400 transition">Instructor Login</Link></li>
+              <li><Link to="/admin/login" className="hover:text-brand-400 transition">Admin Portal</Link></li>
             </ul>
           </div>
 
