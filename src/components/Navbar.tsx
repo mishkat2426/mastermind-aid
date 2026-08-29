@@ -48,24 +48,26 @@ export const Navbar: React.FC<NavbarProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-[#0A192F]/90 backdrop-blur-xl border-b border-white/10 text-white shadow-xl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+    <header className="sticky top-0 z-40 bg-[#0A192F]/95 backdrop-blur-xl border-b border-white/10 text-white shadow-xl">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        
+        {/* Compact Mobile & Responsive Header Bar */}
+        <div className="flex items-center justify-between h-14 sm:h-20">
           
           {/* Brand Logo */}
           <Link
             to="/"
             onClick={() => playUiClickSound()}
-            className="flex items-center gap-3 group"
+            className="flex items-center gap-2 sm:gap-3 group shrink-0"
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center text-white shadow-lg shadow-brand-500/30 group-hover:scale-105 transition-transform">
-              <BrainCircuit className="w-6 h-6 stroke-[2.5]" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center text-white shadow-lg shadow-brand-500/30 group-hover:scale-105 transition-transform">
+              <BrainCircuit className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-black tracking-tight leading-none">
+              <span className="text-base sm:text-xl font-black tracking-tight leading-none">
                 Mastermind <span className="text-brand-400">Aid</span>
               </span>
-              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+              <span className="hidden sm:block text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
                 মাসটারমাইন্ড এইড • 2026
               </span>
             </div>
@@ -96,8 +98,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             })}
           </nav>
 
-          {/* Right Action Icons */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          {/* Right Action Icons (Compact & Mobile-Optimized: [ Search ] [ Cart ] [ Login/Profile ] [ Menu ]) */}
+          <div className="flex items-center gap-1.5 sm:gap-3">
             
             {/* Search Modal Trigger */}
             <button
@@ -105,8 +107,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 playUiClickSound();
                 onOpenSearch();
               }}
-              className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white transition"
+              className="p-2 sm:p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white transition"
               title="Search Courses"
+              aria-label="Search Courses"
             >
               <Search className="w-4 h-4" />
             </button>
@@ -117,36 +120,37 @@ export const Navbar: React.FC<NavbarProps> = ({
                 playUiClickSound();
                 onOpenCart();
               }}
-              className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white transition relative"
+              className="p-2 sm:p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white transition relative"
               title="Shopping Cart"
+              aria-label="Shopping Cart"
             >
               <ShoppingCart className="w-4 h-4" />
               {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-brand-500 text-white rounded-full font-black text-[10px] flex items-center justify-center ring-2 ring-[#0A192F]">
+                <span className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 w-4 h-4 sm:w-5 sm:h-5 bg-brand-500 text-white rounded-full font-black text-[9px] sm:text-[10px] flex items-center justify-center ring-2 ring-[#0A192F]">
                   {cartCount}
                 </span>
               )}
             </button>
 
-            {/* Auth State / Profile Menu */}
+            {/* Auth State / Profile / Login CTA Button */}
             {isAuthenticated && currentUser ? (
               <div className="relative">
                 <button
                   onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                  className="flex items-center gap-2 p-1.5 pr-3 rounded-full bg-white/10 hover:bg-white/20 transition ring-2 ring-brand-400/40"
+                  className="flex items-center gap-1.5 p-1 pr-2 sm:p-1.5 sm:pr-3 rounded-full bg-white/10 hover:bg-white/20 transition ring-2 ring-brand-400/40"
                 >
                   <img
                     src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb'}
                     alt={currentUser.name}
-                    className="w-7 h-7 rounded-full object-cover"
+                    className="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover"
                   />
-                  <span className="text-xs font-extrabold hidden sm:inline">{currentUser.name.split(' ')[0]}</span>
-                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-brand-500 text-white">
+                  <span className="text-[11px] sm:text-xs font-extrabold hidden sm:inline">{currentUser.name.split(' ')[0]}</span>
+                  <span className="text-[8px] sm:text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-brand-500 text-white">
                     {currentUser.role}
                   </span>
                 </button>
 
-                {/* Dropdown Menu */}
+                {/* User Dropdown Menu */}
                 <AnimatePresence>
                   {isUserDropdownOpen && (
                     <motion.div
@@ -179,16 +183,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                         className="w-full flex items-center gap-2 px-3 py-2 text-slate-200 hover:bg-white/10 rounded-xl transition"
                       >
                         <CreditCard className="w-4 h-4 text-emerald-400" />
-                        <span>Transaction History</span>
+                        <span>Transactions Ledger</span>
                       </button>
 
                       <button
                         onClick={() => {
                           setIsUserDropdownOpen(false);
                           logout();
-                          navigate('/');
                         }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-rose-400 hover:bg-rose-500/20 rounded-xl transition border-t border-slate-800"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-rose-400 hover:bg-rose-500/10 rounded-xl transition border-t border-slate-800"
                       >
                         <LogOut className="w-4 h-4" />
                         <span>Sign Out</span>
@@ -198,69 +201,76 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </AnimatePresence>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
-                <Link
-                  to="/login"
-                  onClick={() => playUiClickSound()}
-                  className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-xs rounded-xl shadow-lg transition"
-                >
-                  Log In
-                </Link>
-              </div>
+              <Link
+                to="/login"
+                onClick={() => playUiClickSound()}
+                className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white rounded-xl text-xs font-black shadow-md shadow-brand-500/20 transition shrink-0"
+              >
+                Log In
+              </Link>
             )}
 
-            {/* Mobile Hamburger Toggle */}
+            {/* Mobile Hamburger Menu Drawer Toggle */}
             <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 rounded-xl bg-white/10 text-white"
+              onClick={() => {
+                playUiClickSound();
+                setIsMobileMenuOpen(!isMobileMenuOpen);
+              }}
+              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white transition md:hidden"
+              title="Toggle Navigation Menu"
+              aria-label="Toggle Navigation Menu"
             >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>
 
           </div>
 
         </div>
+
       </div>
 
-      {/* Mobile Drawer Navigation */}
+      {/* Mobile Drawer Menu Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-[#0A192F] border-b border-white/10 px-4 py-4 space-y-2 text-xs font-bold"
+            className="md:hidden bg-[#071325] border-b border-white/10 px-4 py-4 space-y-3 font-extrabold text-xs uppercase tracking-wider"
           >
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="block py-2.5 px-4 rounded-xl text-slate-200 hover:bg-white/10 transition"
+                onClick={() => {
+                  playUiClickSound();
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`block px-4 py-2.5 rounded-xl transition ${
+                  location.pathname === link.path ? 'bg-brand-500 text-white font-black' : 'text-slate-300 hover:bg-white/5'
+                }`}
               >
                 {link.label}
               </Link>
             ))}
 
-            {isAuthenticated ? (
-              <button
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  navigate(getDashboardPath());
-                }}
-                className="w-full text-left py-2.5 px-4 rounded-xl bg-brand-500 text-white font-black"
-              >
-                Open {currentUser?.role} Dashboard
-              </button>
-            ) : (
+            <div className="pt-2 border-t border-slate-800 space-y-2">
               <Link
-                to="/login"
+                to="/teacher/login"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block text-center py-2.5 px-4 rounded-xl bg-brand-500 text-white font-black"
+                className="block px-4 py-2 text-slate-400 hover:text-emerald-400 text-[11px] lowercase"
               >
-                Log In / Register
+                Instructor Portal Login →
               </Link>
-            )}
+
+              <Link
+                to="/admin/login"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block px-4 py-2 text-slate-400 hover:text-purple-400 text-[11px] lowercase"
+              >
+                Admin Portal Login →
+              </Link>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
