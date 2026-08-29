@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Code, Play, RefreshCw, Sparkles, X, Terminal, CheckCircle2 } from 'lucide-react';
+import { AIOrb } from './AIOrb';
 
 interface InteractiveCodePlaygroundProps {
   isOpen: boolean;
@@ -22,15 +23,23 @@ export const InteractiveCodePlayground: React.FC<InteractiveCodePlaygroundProps>
   const [code, setCode] = useState(defaultCode);
   const [outputCode, setOutputCode] = useState(defaultCode);
   const [isRunning, setIsRunning] = useState(false);
+  const [statusLabel, setStatusLabel] = useState('');
 
   if (!isOpen) return null;
 
   const handleRun = () => {
     setIsRunning(true);
+    setStatusLabel('MasterMind is compiling code...');
+
+    setTimeout(() => {
+      setStatusLabel('Analyzing HTML structure & CSS...');
+    }, 300);
+
     setTimeout(() => {
       setOutputCode(code);
       setIsRunning(false);
-    }, 300);
+      setStatusLabel('');
+    }, 700);
   };
 
   const handleReset = () => {
@@ -41,7 +50,6 @@ export const InteractiveCodePlayground: React.FC<InteractiveCodePlaygroundProps>
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6">
-        
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -49,7 +57,6 @@ export const InteractiveCodePlayground: React.FC<InteractiveCodePlaygroundProps>
           transition={{ type: 'spring', damping: 25, stiffness: 280 }}
           className="bg-[#0A192F] text-white rounded-3xl max-w-5xl w-full overflow-hidden shadow-2xl border border-slate-700/80 relative flex flex-col max-h-[90vh]"
         >
-          
           {/* Header Bar */}
           <div className="p-6 border-b border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -74,7 +81,6 @@ export const InteractiveCodePlayground: React.FC<InteractiveCodePlaygroundProps>
 
           {/* Code Editor & Output Split View */}
           <div className="flex-1 overflow-y-auto grid lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-slate-800 bg-[#071325]">
-            
             {/* Left: Code Input Editor */}
             <div className="p-6 flex flex-col space-y-3 font-mono">
               <div className="flex items-center justify-between text-xs text-slate-400 pb-2 border-b border-slate-800">
@@ -94,10 +100,15 @@ export const InteractiveCodePlayground: React.FC<InteractiveCodePlaygroundProps>
 
                   <button
                     onClick={handleRun}
-                    className="px-4 py-1.5 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-bold font-sans flex items-center gap-1.5 shadow-md transition"
+                    disabled={isRunning}
+                    className="px-4 py-1.5 bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white rounded-xl text-xs font-bold font-sans flex items-center gap-1.5 shadow-md transition"
                   >
-                    <Play className="w-3.5 h-3.5 fill-current" />
-                    <span>Run Code</span>
+                    {isRunning ? (
+                      <AIOrb state="thinking" size={16} />
+                    ) : (
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                    )}
+                    <span>{isRunning ? 'Compiling...' : 'Run Code'}</span>
                   </button>
                 </div>
               </div>
@@ -118,22 +129,25 @@ export const InteractiveCodePlayground: React.FC<InteractiveCodePlaygroundProps>
                 </span>
               </div>
 
-              <div className="w-full h-80 bg-white rounded-2xl p-4 overflow-auto border border-slate-700/80 shadow-inner">
+              <div className="w-full h-80 bg-white rounded-2xl p-4 overflow-auto border border-slate-700/80 shadow-inner relative">
                 {isRunning ? (
-                  <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-sans">
-                    Rendering live DOM preview...
+                  <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 text-xs font-sans space-y-3">
+                    <AIOrb state="generating" size={48} />
+                    <p className="font-bold text-slate-700">{statusLabel}</p>
                   </div>
                 ) : (
                   <div dangerouslySetInnerHTML={{ __html: outputCode }} />
                 )}
               </div>
             </div>
-
           </div>
 
           {/* Footer Bar */}
           <div className="p-4 px-6 bg-[#071325] border-t border-slate-800 flex items-center justify-between text-xs text-slate-400 font-medium">
-            <span>Powered by Mastermind Aid Virtual Sandbox • Used in Web Development & WordPress Plugin Masterclasses</span>
+            <span>
+              Powered by Mastermind Aid Virtual Sandbox • Used in Web Development & WordPress Plugin
+              Masterclasses
+            </span>
             <button
               onClick={onClose}
               className="px-5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold transition"
@@ -141,9 +155,7 @@ export const InteractiveCodePlayground: React.FC<InteractiveCodePlaygroundProps>
               Close Editor
             </button>
           </div>
-
         </motion.div>
-
       </div>
     </AnimatePresence>
   );

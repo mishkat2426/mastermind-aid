@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, X, Sparkles, Zap, ShieldCheck, ArrowRight } from 'lucide-react';
+import { ScrollReveal } from './ScrollReveal';
 import { playUiClickSound } from './SoundEffects';
 
 interface CourseComparisonTableProps {
@@ -25,6 +26,7 @@ export const CourseComparisonTable: React.FC<CourseComparisonTableProps> = ({ on
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
+        <ScrollReveal direction="up" distance={20}>
         <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
           <span className="text-xs font-extrabold uppercase tracking-wider text-brand-600 bg-brand-50 px-4 py-1.5 rounded-full inline-block">
             Transparent Pricing Plans
@@ -62,6 +64,7 @@ export const CourseComparisonTable: React.FC<CourseComparisonTableProps> = ({ on
             </button>
           </div>
         </div>
+        </ScrollReveal>
 
         {/* Pricing Cards Grid */}
         <div className="grid md:grid-cols-3 gap-8 items-stretch">
@@ -142,10 +145,11 @@ export const CourseComparisonTable: React.FC<CourseComparisonTableProps> = ({ on
                 playUiClickSound();
                 onSelectPlan('Pro Career', 2500);
               }}
-              className="mt-8 w-full py-3.5 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-xl shadow-brand-500/30 flex items-center justify-center gap-2 transition"
+              className="group mt-8 w-full py-3.5 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-xl shadow-brand-500/30 flex items-center justify-center gap-2 transition relative overflow-hidden"
             >
-              <span>Enroll Pro Career Pass</span>
-              <ArrowRight className="w-4 h-4" />
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+              <span className="relative z-10">Enroll Pro Career Pass</span>
+              <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
 

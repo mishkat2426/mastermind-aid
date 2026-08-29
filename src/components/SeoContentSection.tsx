@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, HelpCircle, BookOpen, ShieldCheck, Sparkles } from 'lucide-react';
 import { SEO_FAQ_ITEMS } from '../data/coursesData';
+import { ScrollReveal } from './ScrollReveal';
 
 export const SeoContentSection: React.FC = () => {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
@@ -16,7 +17,8 @@ export const SeoContentSection: React.FC = () => {
         <div className="grid lg:grid-cols-12 gap-12 items-start">
           
           {/* Left Column: Copy about Mastermind Aid */}
-          <div className="lg:col-span-6 space-y-6">
+          <ScrollReveal direction="up" distance={20} className="lg:col-span-6">
+          <div className="space-y-6">
             <div className="space-y-2">
               <span className="text-xs font-extrabold uppercase tracking-wider text-brand-600 bg-brand-50 px-3.5 py-1 rounded-full">
                 About Mastermind Aid Platform
@@ -59,9 +61,11 @@ export const SeoContentSection: React.FC = () => {
             </div>
 
           </div>
+          </ScrollReveal>
 
           {/* Right Column: Interactive FAQ Accordion */}
-          <div className="lg:col-span-6 space-y-6">
+          <ScrollReveal direction="up" distance={20} delay={150} className="lg:col-span-6">
+          <div className="space-y-6">
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-brand-600 font-extrabold text-xs uppercase tracking-wider">
                 <HelpCircle className="w-4 h-4" />
@@ -100,6 +104,7 @@ export const SeoContentSection: React.FC = () => {
             </div>
 
           </div>
+          </ScrollReveal>
 
         </div>
 

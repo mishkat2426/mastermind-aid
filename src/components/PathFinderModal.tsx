@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Compass, ArrowRight, CheckCircle2, X, Sparkles, Trophy } from 'lucide-react';
 import { COURSES, Course } from '../data/coursesData';
+import { AIOrb } from './AIOrb';
 
 interface PathFinderModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export const PathFinderModal: React.FC<PathFinderModalProps> = ({
   const [goal, setGoal] = useState<string>('');
   const [experience, setExperience] = useState<string>('');
   const [timeCommitment, setTimeCommitment] = useState<string>('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   if (!isOpen) return null;
 
@@ -131,8 +133,9 @@ export const PathFinderModal: React.FC<PathFinderModalProps> = ({
 
             {step === 3 && (
               <div className="space-y-4 text-center py-2">
-                <div className="w-16 h-16 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto shadow-inner">
-                  <Trophy className="w-8 h-8 stroke-[2.5]" />
+                <div className="w-16 h-16 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto shadow-inner relative">
+                  <AIOrb state="success" size={64} />
+                  <Trophy className="w-6 h-6 stroke-[2.5] absolute" />
                 </div>
 
                 <div className="space-y-1">

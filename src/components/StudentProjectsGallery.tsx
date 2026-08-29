@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ExternalLink, Github, Sparkles, Star, Trophy, CheckCircle2 } from 'lucide-react';
 import { playUiClickSound } from './SoundEffects';
+import { ScrollReveal } from './ScrollReveal';
 
 export const StudentProjectsGallery: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState('all');
@@ -49,6 +50,7 @@ export const StudentProjectsGallery: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
+        <ScrollReveal direction="up" distance={20}>
         <div className="text-center max-w-3xl mx-auto mb-14 space-y-3">
           <span className="text-xs font-extrabold uppercase tracking-wider text-brand-600 bg-brand-100/80 px-4 py-1.5 rounded-full inline-block">
             Student Work Showcase
@@ -85,6 +87,7 @@ export const StudentProjectsGallery: React.FC = () => {
             ))}
           </div>
         </div>
+        </ScrollReveal>
 
         {/* Projects Cards Grid */}
         <div className="grid md:grid-cols-3 gap-8">

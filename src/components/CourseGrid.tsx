@@ -10,9 +10,12 @@ import {
   Check, 
   Sparkles,
   Search,
-  Heart
+  Heart,
+  Compass
 } from 'lucide-react';
 import { COURSES, Course } from '../data/coursesData';
+import { ScrollReveal } from './ScrollReveal';
+import { AIOrb } from './AIOrb';
 
 interface CourseGridProps {
   selectedCategory: string | null;
@@ -63,17 +66,19 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Title */}
-        <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
-          <span className="text-xs font-extrabold uppercase tracking-wider text-brand-600 bg-brand-100/80 px-4 py-1.5 rounded-full inline-block">
-            Our Courses List
-          </span>
-          <h2 className="text-3xl sm:text-5xl font-black text-[#0F2B5A]">
-            Most Popular Online Courses
-          </h2>
-          <p className="text-slate-600 text-sm sm:text-base">
-            Explore high-yield skills designed for Bangladeshi developers, digital marketers, and freelancers.
-          </p>
-        </div>
+        <ScrollReveal direction="up" distance={20}>
+          <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
+            <span className="text-xs font-extrabold uppercase tracking-wider text-brand-600 bg-brand-100/80 px-4 py-1.5 rounded-full inline-block">
+              Our Courses List
+            </span>
+            <h2 className="text-3xl sm:text-5xl font-black text-[#0F2B5A]">
+              Most Popular Online Courses
+            </h2>
+            <p className="text-slate-600 text-sm sm:text-base">
+              Explore high-yield skills designed for Bangladeshi developers, digital marketers, and freelancers.
+            </p>
+          </div>
+        </ScrollReveal>
 
         {/* Filter Bar & Search Input */}
         <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-200 mb-10 flex flex-col md:flex-row items-center justify-between gap-4">
@@ -147,12 +152,12 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
         {/* Courses Cards Grid with Animated Stagger */}
         {filteredCourses.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 px-4">
-            <div className="w-16 h-16 bg-brand-50 rounded-2xl flex items-center justify-center text-brand-500 mx-auto mb-4">
-              <Search className="w-8 h-8" />
+            <div className="flex justify-center mb-4">
+              <AIOrb state="idle" size={56} />
             </div>
-            <h3 className="text-xl font-bold text-[#0F2B5A]">No Courses Found</h3>
-            <p className="text-slate-500 text-sm mt-1 max-w-md mx-auto">
-              We couldn't find any course matching your current filter or search criteria.
+            <h3 className="text-xl font-bold text-[#0F2B5A]">Nothing here yet.</h3>
+            <p className="text-slate-500 text-sm mt-2 max-w-md mx-auto">
+              Start your learning journey and MasterMind will help you find the perfect course.
             </p>
             <button
               onClick={() => {
@@ -160,9 +165,10 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
                 onSelectCategory(null);
                 setSearchQuery('');
               }}
-              className="mt-4 px-6 py-2.5 bg-brand-500 text-white rounded-xl text-xs font-bold shadow-md hover:bg-brand-600 transition"
+              className="group mt-5 px-6 py-2.5 bg-brand-500 text-white rounded-xl text-xs font-bold shadow-md hover:bg-brand-600 transition inline-flex items-center gap-2"
             >
-              Reset All Filters
+              <Compass className="w-3.5 h-3.5" />
+              <span>Explore All Courses</span>
             </button>
           </div>
         ) : (

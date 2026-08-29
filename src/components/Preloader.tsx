@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BrainCircuit, Sparkles } from 'lucide-react';
+import { AIOrb } from './AIOrb';
 
 interface PreloaderProps {
   onComplete: () => void;
@@ -8,14 +9,28 @@ interface PreloaderProps {
 
 export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
   const [isVisible, setIsVisible] = useState(true);
+  const [statusText, setStatusText] = useState('Initializing...');
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const texts = [
+      { text: 'Initializing...', delay: 0 },
+      { text: 'Preparing your experience...', delay: 500 },
+      { text: 'Almost ready...', delay: 1000 },
+    ];
+
+    const timers = texts.map(({ text, delay }) =>
+      setTimeout(() => setStatusText(text), delay)
+    );
+
+    const hideTimer = setTimeout(() => {
       setIsVisible(false);
       setTimeout(onComplete, 600);
     }, 1400);
 
-    return () => clearTimeout(timer);
+    return () => {
+      timers.forEach(clearTimeout);
+      clearTimeout(hideTimer);
+    };
   }, [onComplete]);
 
   return (
@@ -32,14 +47,17 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
           
           <div className="relative z-10 flex flex-col items-center space-y-5 text-center px-4">
             
-            {/* Logo Animated Icon */}
+            {/* AI Orb replaces simple logo icon */}
             <motion.div
-              initial={{ scale: 0.5, opacity: 0, rotate: -15 }}
-              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.5, ease: 'easeOut' }}
-              className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center shadow-2xl shadow-brand-500/50 ring-4 ring-white/10"
+              className="relative"
             >
-              <BrainCircuit className="w-8 h-8 text-white stroke-[2.5]" />
+              <AIOrb state="thinking" size={64} />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <BrainCircuit className="w-6 h-6 text-white/80 stroke-[2.5]" />
+              </div>
             </motion.div>
 
             {/* Brand Title */}
@@ -57,6 +75,20 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
                 মাসটারমাইন্ড এইড • Elevating Skills in Bangladesh
               </p>
             </motion.div>
+
+            {/* Status text */}
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={statusText}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2 }}
+                className="text-xs text-slate-500 font-medium"
+              >
+                {statusText}
+              </motion.p>
+            </AnimatePresence>
 
             {/* Progress Bar Loader Line */}
             <div className="w-48 bg-white/10 h-1.5 rounded-full overflow-hidden relative">
