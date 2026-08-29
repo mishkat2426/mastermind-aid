@@ -69,12 +69,12 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
                 <BrainCircuit className="w-6 h-6" />
               </div>
               <span className="text-2xl font-black tracking-tight">
-                Mastermind <span className="text-brand-400">Aid</span>
+                MASTERMIND <span className="text-brand-400">AIDT</span>
               </span>
             </div>
 
             <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
-              Mastermind Aid is Bangladesh's premier skill development platform, delivering high-impact online courses in Web Development, WordPress, Digital Marketing, SEO, and Freelancing.
+              MASTERMIND AIDT is Bangladesh's premier skill development platform, delivering high-impact online courses in Web Development, WordPress, Digital Marketing, SEO, and Freelancing.
             </p>
 
             <div className="pt-2 flex items-center gap-3">
@@ -143,7 +143,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
         {/* Bottom Copyright Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <div>
-            © 2026 <strong className="text-white">Mastermind Aid</strong>. All Rights Reserved. Built with Excellence.
+            © 2026 <strong className="text-white">MASTERMIND AIDT</strong>. All Rights Reserved. Built with Excellence.
           </div>
           <div className="flex items-center gap-6">
             <a href="#" className="hover:text-white transition">Privacy Policy</a>

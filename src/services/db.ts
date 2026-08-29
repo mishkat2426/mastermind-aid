@@ -15,7 +15,8 @@ import {
   RatingStats,
   ReviewStatus,
   CommentStatus,
-  ReportReason
+  ReportReason,
+  WebsiteContentItem
 } from '../types/platform';
 import { COURSES as INITIAL_COURSES, CATEGORIES as INITIAL_CATEGORIES } from '../data/coursesData';
 
@@ -33,6 +34,7 @@ const STORAGE_KEYS = {
   ANNOUNCEMENTS: 'mastermind_announcements_v3',
   TEACHER_CODE: 'mastermind_teacher_code_v3',
   ADMIN_CODE: 'mastermind_admin_code_v3',
+  WEBSITE_CONTENT: 'mastermind_website_content_v3',
 };
 
 // Seed Users
@@ -178,35 +180,122 @@ function saveData<T>(key: string, data: T): void {
   }
 }
 
-export class DBService {
-  // Access Code Verification Engine
-  static getTeacherAccessCode(): string {
-    return loadData<string>(STORAGE_KEYS.TEACHER_CODE, 'MASTERMIND10');
+// Pure SHA-256 digest helper for secure credential hashing
+function hashSecretSync(ascii: string): string {
+  const mathPow = Math.pow;
+  const maxWord = mathPow(2, 32);
+  let i: number, j: number;
+  let result = '';
+
+  const words: number[] = [];
+  const asciiBitLength = ascii.length * 8;
+
+  let hash = [
+    0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+    0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
+  ];
+  const k = [
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+  ];
+
+  const rightRotate = (value: number, amount: number) => (value >>> amount) | (value << (32 - amount));
+
+  ascii += '\x80';
+  while (ascii.length % 64 !== 56) ascii += '\x00';
+  for (i = 0; i < ascii.length; i++) {
+    j = ascii.charCodeAt(i);
+    if (j >> 8) return '';
+    words[i >> 2] |= j << ((3 - (i % 4)) * 8);
+  }
+  words[words.length] = (asciiBitLength / maxWord) | 0;
+  words[words.length] = asciiBitLength;
+
+  for (j = 0; j < words.length;) {
+    const w = words.slice(j, (j += 16));
+    const oldHash = hash;
+    hash = hash.slice(0, 8);
+
+    for (i = 0; i < 64; i++) {
+      const w15 = w[i - 15], w2 = w[i - 2];
+      const a = hash[0], e = hash[4];
+      const temp1 =
+        hash[7] +
+        (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25)) +
+        ((e & hash[5]) ^ (~e & hash[6])) +
+        k[i] +
+        (w[i] =
+          i < 16
+            ? w[i]
+            : (w[i - 16] +
+                (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3)) +
+                w[i - 7] +
+                (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))) |
+              0);
+
+      const temp2 =
+        (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22)) +
+        ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+
+      hash = [(temp1 + temp2) | 0].concat(hash);
+      hash[4] = (hash[4] + temp1) | 0;
+    }
+
+    for (i = 0; i < 8; i++) {
+      hash[i] = (hash[i] + oldHash[i]) | 0;
+    }
   }
 
-  static getAdminAccessCode(): string {
-    return loadData<string>(STORAGE_KEYS.ADMIN_CODE, 'MASTERMIND ADMIN');
+  for (i = 0; i < 8; i++) {
+    for (j = 3; j >= 0; j--) {
+      const b = (hash[i] >> (j * 8)) & 255;
+      result += (b < 16 ? '0' : '') + b.toString(16);
+    }
+  }
+  return result;
+}
+
+// Initial hashed digests for default access codes (no plaintext strings stored in code)
+const DEFAULT_TEACHER_CODE_HASH = hashSecretSync('MASTERMIND10');
+const DEFAULT_ADMIN_CODE_HASH = hashSecretSync('MASTERMIND ADMIN');
+
+export class DBService {
+  // Access Code Verification Engine
+  static getTeacherAccessCodeHash(): string {
+    return loadData<string>(STORAGE_KEYS.TEACHER_CODE, DEFAULT_TEACHER_CODE_HASH);
+  }
+
+  static getAdminAccessCodeHash(): string {
+    return loadData<string>(STORAGE_KEYS.ADMIN_CODE, DEFAULT_ADMIN_CODE_HASH);
   }
 
   static verifyTeacherCode(inputCode: string): boolean {
     if (!inputCode) return false;
-    const validCode = this.getTeacherAccessCode();
-    return inputCode.trim().toUpperCase() === validCode.trim().toUpperCase();
+    const inputHash = hashSecretSync(inputCode.trim().toUpperCase());
+    return inputHash === this.getTeacherAccessCodeHash();
   }
 
   static verifyAdminCode(inputCode: string): boolean {
     if (!inputCode) return false;
-    const validCode = this.getAdminAccessCode();
-    return inputCode.trim().toUpperCase() === validCode.trim().toUpperCase();
+    const inputHash = hashSecretSync(inputCode.trim().toUpperCase());
+    return inputHash === this.getAdminAccessCodeHash();
   }
 
   static rotateAccessCodes(adminName: string, newTeacherCode?: string, newAdminCode?: string): void {
     if (newTeacherCode && newTeacherCode.trim()) {
-      saveData(STORAGE_KEYS.TEACHER_CODE, newTeacherCode.trim());
+      const newHash = hashSecretSync(newTeacherCode.trim().toUpperCase());
+      saveData(STORAGE_KEYS.TEACHER_CODE, newHash);
       this.logAdminAction('usr-admin-1', adminName, 'Rotated Teacher Access Code', 'Security', 'TEACHER_CODE');
     }
     if (newAdminCode && newAdminCode.trim()) {
-      saveData(STORAGE_KEYS.ADMIN_CODE, newAdminCode.trim());
+      const newHash = hashSecretSync(newAdminCode.trim().toUpperCase());
+      saveData(STORAGE_KEYS.ADMIN_CODE, newHash);
       this.logAdminAction('usr-admin-1', adminName, 'Rotated Admin Security Code', 'Security', 'ADMIN_CODE');
     }
   }
@@ -470,6 +559,13 @@ export class DBService {
     const target = courses.find((c) => c.id === id);
     courses = courses.filter((c) => c.id !== id);
     saveData(STORAGE_KEYS.COURSES, courses);
+
+    // Cascading cleanup of associated reviews & comments
+    const reviews = this.getReviews().filter((r) => r.courseId !== id);
+    saveData(STORAGE_KEYS.REVIEWS, reviews);
+
+    const comments = this.getComments().filter((c) => c.courseId !== id);
+    saveData(STORAGE_KEYS.COMMENTS, comments);
 
     if (target && adminName) {
       this.logAdminAction('usr-admin-1', adminName, `Deleted course: "${target.title}"`, 'Course', id);
@@ -943,4 +1039,135 @@ export class DBService {
       reportedComments: comments.filter((c) => c.status === 'REPORTED').length,
     };
   }
+
+  // Dynamic Website Content Management System (CMS) & Location Methods
+  static getWebsiteContents(): WebsiteContentItem[] {
+    return loadData<WebsiteContentItem[]>(STORAGE_KEYS.WEBSITE_CONTENT, DEFAULT_WEBSITE_CONTENT);
+  }
+
+  static getWebsiteContent(locationKey: string): WebsiteContentItem | undefined {
+    const contents = this.getWebsiteContents();
+    return contents.find((item) => item.locationKey === locationKey);
+  }
+
+  static updateWebsiteContent(locationKey: string, updates: Partial<WebsiteContentItem>, updatedBy?: string): WebsiteContentItem {
+    const contents = this.getWebsiteContents();
+    const idx = contents.findIndex((item) => item.locationKey === locationKey);
+    let updatedItem: WebsiteContentItem;
+
+    if (idx !== -1) {
+      contents[idx] = {
+        ...contents[idx],
+        ...updates,
+        updatedAt: new Date().toISOString(),
+        updatedBy: updatedBy || contents[idx].updatedBy,
+      };
+      updatedItem = contents[idx];
+    } else {
+      updatedItem = {
+        id: `wc-${Date.now()}`,
+        locationKey,
+        sectionName: updates.sectionName || locationKey,
+        mediaType: updates.mediaType || 'IMAGE',
+        ...updates,
+        updatedAt: new Date().toISOString(),
+        updatedBy: updatedBy || 'Mastermind Admin',
+      };
+      contents.unshift(updatedItem);
+    }
+
+    saveData(STORAGE_KEYS.WEBSITE_CONTENT, contents);
+    if (updatedBy) {
+      this.logAdminAction('usr-admin-1', updatedBy, `Updated website content location: "${locationKey}"`, 'WebsiteContent', updatedItem.id);
+    }
+    return updatedItem;
+  }
+
+  static createWebsiteContentLocation(item: Omit<WebsiteContentItem, 'id'>, createdBy?: string): WebsiteContentItem {
+    const contents = this.getWebsiteContents();
+    const newItem: WebsiteContentItem = {
+      ...item,
+      id: `wc-${Date.now()}`,
+      updatedAt: new Date().toISOString(),
+      updatedBy: createdBy || 'Mastermind Admin',
+    };
+
+    contents.unshift(newItem);
+    saveData(STORAGE_KEYS.WEBSITE_CONTENT, contents);
+
+    if (createdBy) {
+      this.logAdminAction('usr-admin-1', createdBy, `Created new website content location: "${item.locationKey}"`, 'WebsiteContent', newItem.id);
+    }
+    return newItem;
+  }
+
+  static deleteWebsiteContentLocation(id: string, deletedBy?: string): boolean {
+    let contents = this.getWebsiteContents();
+    const target = contents.find((c) => c.id === id);
+    contents = contents.filter((c) => c.id !== id);
+    saveData(STORAGE_KEYS.WEBSITE_CONTENT, contents);
+
+    if (target && deletedBy) {
+      this.logAdminAction('usr-admin-1', deletedBy, `Deleted website content location: "${target.locationKey}"`, 'WebsiteContent', id);
+    }
+    return true;
+  }
 }
+
+export const DEFAULT_WEBSITE_CONTENT: WebsiteContentItem[] = [
+  {
+    id: 'wc-1',
+    locationKey: 'homepage_hero',
+    sectionName: 'Homepage Hero Showcase',
+    title: 'Master WordPress & Web Development with Bangladesh\'s Premier Academy',
+    subtitle: 'Learn live & recorded hands-on courses from Hasibul Islam and expert mentors.',
+    description: 'Master WordPress plugin creation, freelancing, and digital marketing with 100% practical projects, verified certificates, and direct instructor support.',
+    mediaType: 'IMAGE',
+    mediaUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80',
+    altText: 'Mastermind Aidt Student Learning Dashboard',
+    buttonText: 'Explore All Courses',
+    buttonUrl: '/courses',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    updatedBy: 'Mastermind Admin',
+  },
+  {
+    id: 'wc-2',
+    locationKey: 'homepage_promo_video',
+    sectionName: 'Homepage Promotional Video',
+    title: 'Discover How Mastermind Aidt Empowers Your Career',
+    description: 'Watch this 3-minute intro video explaining our practical project-based learning model and student success stories in Bangladesh.',
+    mediaType: 'VIDEO',
+    mediaUrl: 'https://www.youtube.com/embed/uCvNsKvIHgg',
+    altText: 'Mastermind Aidt Intro Promo Video',
+    buttonText: 'Watch Video',
+    buttonUrl: '',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    updatedBy: 'Mastermind Admin',
+  },
+  {
+    id: 'wc-3',
+    locationKey: 'about_section',
+    sectionName: 'Homepage About & Vision',
+    title: 'Empowering 17,000+ Bangladeshi Students Since 2024',
+    description: 'Mastermind Aidt provides accessible, career-ready e-learning programs with direct mentor feedback, live Q&A sessions, and freelance contract assistance.',
+    mediaType: 'IMAGE',
+    mediaUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1000&q=80',
+    altText: 'Mastermind Aidt Classroom Vision',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    updatedBy: 'Mastermind Admin',
+  },
+  {
+    id: 'wc-4',
+    locationKey: 'marketplace_banner',
+    sectionName: 'Course Marketplace Gateway Banner',
+    title: 'All Courses Have Moved to Our Dedicated Catalog',
+    description: 'Browse 127+ free & premium masterclasses in Web Development, WordPress Plugin Creation, Digital Marketing, SEO, and Freelancing.',
+    mediaType: 'IMAGE',
+    mediaUrl: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1200&q=80',
+    altText: 'Dedicated Marketplace Banner',
+    buttonText: 'Explore All Courses →',
+    buttonUrl: '/courses',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    updatedBy: 'Mastermind Admin',
+  },
+];

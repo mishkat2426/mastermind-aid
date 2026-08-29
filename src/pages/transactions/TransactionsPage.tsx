@@ -50,6 +50,46 @@ export const TransactionsPage: React.FC = () => {
     }
   };
 
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-[#0A192F] text-white flex flex-col justify-center items-center py-16 px-4 font-sans relative overflow-hidden">
+        <div className="max-w-md w-full bg-[#0B1B33]/90 backdrop-blur-xl p-8 rounded-3xl border border-slate-700/80 shadow-2xl space-y-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center mx-auto shadow-xl">
+            <ShieldCheck className="w-9 h-9 stroke-[2]" />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-white">Authentication Required</h2>
+            <p className="text-xs text-slate-300 font-medium leading-relaxed">
+              Transaction ledgers contain confidential purchase details. Please log in or create an account to view your transaction records.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <Link
+              to="/login"
+              className="flex-1 py-3 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-extrabold text-xs rounded-xl shadow-lg transition text-center"
+            >
+              Sign In
+            </Link>
+            <Link
+              to="/register"
+              className="flex-1 py-3 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-extrabold text-xs rounded-xl transition text-center"
+            >
+              Create Account (Sign Up)
+            </Link>
+          </div>
+
+          <div className="pt-2 border-t border-slate-800">
+            <Link to="/" className="text-xs text-brand-400 hover:underline font-bold">
+              ← Return to MASTERMIND AIDT Homepage
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       

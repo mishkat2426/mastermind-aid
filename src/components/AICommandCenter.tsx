@@ -105,13 +105,12 @@ export const AICommandCenter: React.FC<AICommandCenterProps> = ({ className = ''
           {STATUS_SEQUENCE.map((step, idx) => (
             <div
               key={idx}
-              className={`flex items-center gap-2 text-[11px] font-medium transition-colors duration-300 ${
-                idx < currentStep
+              className={`flex items-center gap-2 text-[11px] font-medium transition-colors duration-300 ${idx < currentStep
                   ? 'text-emerald-400'
                   : idx === currentStep
-                  ? 'text-slate-200'
-                  : 'text-slate-600'
-              }`}
+                    ? 'text-slate-200'
+                    : 'text-slate-600'
+                }`}
             >
               <span className="w-3 text-center">
                 {idx < currentStep ? '✓' : idx === currentStep ? '◉' : '○'}

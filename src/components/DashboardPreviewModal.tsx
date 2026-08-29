@@ -54,7 +54,7 @@ export const DashboardPreviewModal: React.FC<DashboardPreviewModalProps> = ({ is
                 <div className="flex items-center gap-1.5 text-xs text-brand-400 font-extrabold uppercase tracking-wider">
                   <Sparkles className="w-3.5 h-3.5" /> Interactive Student Portal Demo
                 </div>
-                <h3 className="text-xl sm:text-2xl font-black">Mastermind Aid Learning Dashboard</h3>
+                <h3 className="text-xl sm:text-2xl font-black">MASTERMIND AIDT Learning Dashboard</h3>
               </div>
             </div>
 

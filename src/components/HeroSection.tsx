@@ -58,6 +58,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     ? realEnrollments.slice(0, 5).map((e) => `⚡ A student recently enrolled in ${e.courseTitle}`)
     : ['⚡ Mastermind Aid • Premier AI & IT Skill Development Platform 2026'];
 
+  const heroContent = DBService.getWebsiteContent('homepage_hero');
+  const promoVideoContent = DBService.getWebsiteContent('homepage_promo_video');
+
   const [tickerIndex, setTickerIndex] = useState(0);
 
   useEffect(() => {
@@ -80,7 +83,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* Real-time DB Enrollment Ticker & Silicon Valley Trust Badge (Requirement #3 & #5) */}
+        {/* Real-time DB Enrollment Ticker & Trust Badge */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -118,7 +121,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             {/* Pill Tag */}
             <motion.div variants={fadeUpVariant(0)} className="inline-flex items-center gap-2 bg-brand-500/20 border border-brand-400/40 text-brand-300 px-4 py-1.5 rounded-full text-xs sm:text-sm font-extrabold tracking-wide shadow-sm">
               <Zap className="w-4 h-4 text-amber-400 fill-amber-400 animate-bounce" />
-              <span>Be Skillful • Top E-Learning Ecosystem in Bangladesh 2026</span>
+              <span>{heroContent?.subtitle || 'Be Skillful • Top E-Learning Ecosystem in Bangladesh 2026'}</span>
             </motion.div>
 
             {/* Main Headline */}
@@ -126,7 +129,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               variants={fadeUpVariant(0.05)}
               className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.15]"
             >
-              Best Online Course in Bangladesh 2026 <br className="hidden sm:inline" />
+              {heroContent?.title || 'Best Online Course in Bangladesh 2026'} <br className="hidden sm:inline" />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-sky-300 to-emerald-300 relative inline-block">
                 (Free & Premium)
               </span>
@@ -137,7 +140,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               variants={fadeUpVariant(0.1)}
               className="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto lg:mx-0 font-medium leading-relaxed"
             >
-              Master WordPress Plugin Development, Digital Marketing, Meta Ads & Freelancing with hands-on practical masterclasses, real database verification, and live mentorship.
+              {heroContent?.description || 'Master WordPress Plugin Development, Digital Marketing, Meta Ads & Freelancing with hands-on practical masterclasses, real database verification, and live mentorship.'}
             </motion.p>
 
             {/* Trust Bullet Badges */}

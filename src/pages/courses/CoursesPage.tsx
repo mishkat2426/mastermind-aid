@@ -18,7 +18,6 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { DBService } from '../../services/db';
-import { CATEGORIES } from '../../data/coursesData';
 import { Course } from '../../types/platform';
 import { Footer } from '../../components/Footer';
 import { ScrollReveal } from '../../components/ScrollReveal';
@@ -130,8 +129,8 @@ export const CoursesPage: React.FC<CoursesPageProps> = ({ onAddToCart, cartItemI
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
-              <option value="all">All Categories ({CATEGORIES.length})</option>
-              {CATEGORIES.map((cat) => (
+              <option value="all">All Categories ({DBService.getCategories().length})</option>
+              {DBService.getCategories().map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
                 </option>

@@ -13,7 +13,8 @@ import {
   Heart,
   Compass
 } from 'lucide-react';
-import { COURSES, Course } from '../data/coursesData';
+import { DBService } from '../services/db';
+import { Course } from '../types/platform';
 import { ScrollReveal } from './ScrollReveal';
 import { AIOrb } from './AIOrb';
 
@@ -36,6 +37,8 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [wishlist, setWishlist] = useState<string[]>([]);
 
+  const allCourses = DBService.getPublishedCourses();
+
   const toggleWishlist = (courseId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setWishlist((prev) =>
@@ -43,9 +46,9 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
     );
   };
 
-  // Filter Logic
-  const filteredCourses = COURSES.filter((course) => {
-    if (selectedCategory && course.categoryId !== selectedCategory) return false;
+  // Dynamic Filter Logic from Database
+  const filteredCourses = allCourses.filter((course) => {
+    if (selectedCategory && course.categoryId !== selectedCategory && course.category.toLowerCase() !== selectedCategory.toLowerCase()) return false;
     if (activeTab === 'free' && !course.isFree) return false;
     if (activeTab === 'paid' && course.isFree) return false;
     if (activeTab !== 'all' && activeTab !== 'free' && activeTab !== 'paid' && course.categoryId !== activeTab) {
@@ -55,7 +58,7 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
       const q = searchQuery.toLowerCase();
       const matchTitle = course.title.toLowerCase().includes(q);
       const matchCategory = course.category.toLowerCase().includes(q);
-      const matchInst = course.instructor.name.toLowerCase().includes(q);
+      const matchInst = (course.teacherName || '').toLowerCase().includes(q);
       return matchTitle || matchCategory || matchInst;
     }
     return true;
@@ -96,7 +99,7 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              All Courses ({COURSES.length})
+              All Courses ({allCourses.length})
             </button>
             
             <button
@@ -191,7 +194,7 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
                     {/* Image Container & Shimmer Effect */}
                     <div className="relative overflow-hidden h-52 bg-slate-100 shimmer-effect">
                       <img
-                        src={course.image}
+                        src={course.thumbnail || (course as any).image}
                         alt={course.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
@@ -298,13 +301,13 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
                         {/* Instructor */}
                         <div className="flex items-center gap-2.5">
                           <img
-                            src={course.instructor.avatar}
-                            alt={course.instructor.name}
+                            src={course.teacherAvatar || course.instructor?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d'}
+                            alt={course.teacherName || course.instructor?.name || 'Instructor'}
                             className="w-8 h-8 rounded-full object-cover ring-2 ring-brand-100"
                           />
                           <div className="text-left">
                             <div className="text-xs font-bold text-slate-800 leading-tight">
-                              {course.instructor.name}
+                              {course.teacherName || course.instructor?.name || 'Instructor'}
                             </div>
                             <div className="text-[10px] text-slate-400 font-medium">Mentor</div>
                           </div>

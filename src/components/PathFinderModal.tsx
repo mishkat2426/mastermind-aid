@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Compass, ArrowRight, CheckCircle2, X, Sparkles, Trophy } from 'lucide-react';
-import { COURSES, Course } from '../data/coursesData';
+import { DBService } from '../services/db';
+import { Course } from '../types/platform';
 import { AIOrb } from './AIOrb';
 
 interface PathFinderModalProps {
@@ -30,11 +31,19 @@ export const PathFinderModal: React.FC<PathFinderModalProps> = ({
     setTimeCommitment('');
   };
 
+  const publishedCourses = DBService.getPublishedCourses();
+
   // Pick recommendation based on choices
-  let recommendedCourse = COURSES[0];
-  if (goal === 'digital-marketing') recommendedCourse = COURSES[1];
-  if (goal === 'freelancing') recommendedCourse = COURSES[2];
-  if (goal === 'seo') recommendedCourse = COURSES[3];
+  let recommendedCourse = publishedCourses[0] || {
+    id: 'wp-plugin-dev-2026',
+    title: 'WordPress Plugin Development Mastery',
+    thumbnail: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c',
+    price: 2500,
+    category: 'Web Development',
+  };
+  if (publishedCourses.length > 1 && goal === 'digital-marketing') recommendedCourse = publishedCourses[1];
+  if (publishedCourses.length > 2 && goal === 'freelancing') recommendedCourse = publishedCourses[2];
+  if (publishedCourses.length > 3 && goal === 'seo') recommendedCourse = publishedCourses[3];
 
   return (
     <AnimatePresence>
@@ -149,7 +158,7 @@ export const PathFinderModal: React.FC<PathFinderModalProps> = ({
 
                 <div className="bg-brand-50 p-5 rounded-3xl border border-brand-200 text-left flex gap-4 items-center">
                   <img
-                    src={recommendedCourse.image}
+                    src={recommendedCourse.thumbnail || (recommendedCourse as any).image}
                     alt={recommendedCourse.title}
                     className="w-20 h-20 rounded-2xl object-cover border border-brand-200"
                   />
@@ -161,7 +170,7 @@ export const PathFinderModal: React.FC<PathFinderModalProps> = ({
                       {recommendedCourse.title}
                     </h5>
                     <p className="text-xs text-slate-500 font-medium line-clamp-1">
-                      Instructor: {recommendedCourse.instructor.name}
+                      Instructor: {recommendedCourse.teacherName || (recommendedCourse as any).instructor?.name || 'Hasibul Islam'}
                     </p>
                   </div>
                 </div>

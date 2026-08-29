@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, BookOpen, Star, ArrowRight, RotateCcw } from 'lucide-react';
-import { COURSES, Course } from '../data/coursesData';
+import { DBService } from '../services/db';
+import { Course } from '../types/platform';
 import { AIOrb } from './AIOrb';
 
 interface SearchModalProps {
@@ -40,12 +41,14 @@ export const SearchModal: React.FC<SearchModalProps> = ({
 
   if (!isOpen) return null;
 
+  const publishedCourses = DBService.getPublishedCourses();
+
   const results = query.trim()
-    ? COURSES.filter(
+    ? publishedCourses.filter(
         (c) =>
           c.title.toLowerCase().includes(query.toLowerCase()) ||
           c.category.toLowerCase().includes(query.toLowerCase()) ||
-          c.instructor.name.toLowerCase().includes(query.toLowerCase())
+          (c.teacherName || '').toLowerCase().includes(query.toLowerCase())
       )
     : [];
 
@@ -115,7 +118,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
               >
                 <div className="flex items-center gap-3">
                   <img
-                    src={course.image}
+                    src={course.thumbnail || (course as any).image}
                     alt={course.title}
                     className="w-12 h-12 rounded-xl object-cover"
                   />

@@ -12,6 +12,7 @@ export const RegisterPage: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<UserRole>('STUDENT');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -19,8 +20,18 @@ export const RegisterPage: React.FC = () => {
     e.preventDefault();
     setErrorMsg('');
 
-    if (!name.trim() || !email.trim() || !password.trim()) {
-      setErrorMsg('Please fill in all required fields.');
+    if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
+      setErrorMsg('Please fill in all required registration fields.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMsg('Passwords do not match. Please re-enter your password.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMsg('Password must be at least 6 characters long.');
       return;
     }
 
@@ -45,13 +56,13 @@ export const RegisterPage: React.FC = () => {
             <BrainCircuit className="w-7 h-7 stroke-[2.5]" />
           </div>
           <span className="text-3xl font-black tracking-tight">
-            Mastermind <span className="text-brand-400">Aid</span>
+            MASTERMIND <span className="text-brand-400">AIDT</span>
           </span>
         </Link>
         <div>
-          <h2 className="text-2xl font-black">Create Account</h2>
+          <h2 className="text-2xl font-black">Create Your Account</h2>
           <p className="text-xs text-slate-400 font-medium">
-            Join 17,000+ Bangladeshi students & instructors on MasterMind Aid.
+            Join 17,000+ Bangladeshi students & instructors on MASTERMIND AIDT.
           </p>
         </div>
       </div>
@@ -129,6 +140,20 @@ export const RegisterPage: React.FC = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 bg-[#071325] border border-slate-700 rounded-xl text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-300 mb-1">
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                required
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full px-4 py-3 bg-[#071325] border border-slate-700 rounded-xl text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>

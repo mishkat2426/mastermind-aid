@@ -42,7 +42,7 @@ export const StudentDashboard: React.FC = () => {
               S
             </div>
             <div>
-              <h2 className="text-sm font-black tracking-tight">Student Portal</h2>
+              <h2 className="text-sm font-black tracking-tight">MASTERMIND AIDT Student Portal</h2>
               <span className="text-[10px] text-brand-400 font-bold uppercase tracking-wider">Learner Dashboard</span>
             </div>
           </Link>
@@ -203,10 +203,53 @@ export const StudentDashboard: React.FC = () => {
 
         {/* Tab 3: Transactions */}
         {activeTab === 'transactions' && (
-          <div className="space-y-4">
-            <Link to="/transactions" className="inline-block px-5 py-2.5 bg-brand-500 text-white text-xs font-extrabold rounded-xl shadow">
-              Open Full Transactions History Page →
-            </Link>
+          <div className="bg-[#0A192F] p-6 rounded-3xl border border-slate-800 space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-black flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-emerald-400" />
+                <span>Your Transaction & Payment History ({transactions.length})</span>
+              </h3>
+              <Link to="/transactions" className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold rounded-xl shadow transition">
+                Full Ledger →
+              </Link>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#071325] text-slate-400 font-extrabold uppercase text-[10px] border-b border-slate-800">
+                  <tr>
+                    <th className="p-3">Transaction ID</th>
+                    <th className="p-3">Course</th>
+                    <th className="p-3">Amount</th>
+                    <th className="p-3">Method</th>
+                    <th className="p-3">Status</th>
+                    <th className="p-3 text-right">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800 font-medium text-slate-300">
+                  {transactions.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="p-6 text-center text-slate-500">No payment transaction history recorded.</td>
+                    </tr>
+                  ) : (
+                    transactions.map((t) => (
+                      <tr key={t.id}>
+                        <td className="p-3 font-mono font-bold text-white">{t.transactionId}</td>
+                        <td className="p-3 truncate max-w-xs">{t.courseTitle}</td>
+                        <td className="p-3 font-bold text-emerald-400">৳{t.amount.toLocaleString()}</td>
+                        <td className="p-3"><span className="bg-slate-800 px-2 py-0.5 rounded text-[10px]">{t.paymentMethod}</span></td>
+                        <td className="p-3">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${t.status === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>
+                            {t.status}
+                          </span>
+                        </td>
+                        <td className="p-3 text-right text-slate-400 font-mono">{new Date(t.createdAt).toLocaleDateString()}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 

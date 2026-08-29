@@ -12,7 +12,7 @@ import {
   Globe,
   ArrowUpRight
 } from 'lucide-react';
-import { CATEGORIES } from '../data/coursesData';
+import { DBService } from '../services/db';
 import { ScrollReveal } from './ScrollReveal';
 
 interface CategoryGridProps {
@@ -86,6 +86,9 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
   selectedCategory,
   onSelectCategory,
 }) => {
+  const categories = DBService.getCategories();
+  const publishedCourses = DBService.getPublishedCourses();
+
   return (
     <section className="py-20 bg-white border-y border-slate-100 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -118,8 +121,11 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
 
         {/* Categories Grid with Tilt + Stagger */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {CATEGORIES.map((cat, idx) => {
+          {categories.map((cat, idx) => {
             const isSelected = selectedCategory === cat.id;
+            const courseCount = publishedCourses.filter(
+              (c) => c.categoryId === cat.id || c.category.toLowerCase() === cat.name.toLowerCase()
+            ).length;
 
             return (
               <ScrollReveal key={cat.id} delay={idx * 60} direction="up" distance={24}>
@@ -141,7 +147,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
                     </div>
 
                     <span className="text-xs font-bold bg-brand-100/80 text-brand-700 px-3 py-1 rounded-full flex items-center gap-1 group-hover:bg-brand-500 group-hover:text-white transition-colors">
-                      {cat.count} {cat.count === 1 ? 'Course' : 'Courses'}
+                      {courseCount} {courseCount === 1 ? 'Course' : 'Courses'}
                     </span>
                   </div>
 

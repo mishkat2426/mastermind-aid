@@ -44,7 +44,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const navLinks = [
     { label: 'Home', path: '/' },
     { label: 'Courses', path: '/courses' },
-    { label: 'Transactions', path: '/transactions' },
+    ...(isAuthenticated ? [{ label: 'Transactions', path: '/transactions' }] : []),
   ];
 
   return (
@@ -65,10 +65,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
             <div className="flex flex-col">
               <span className="text-base sm:text-xl font-black tracking-tight leading-none">
-                Mastermind <span className="text-brand-400">Aid</span>
+                MASTERMIND <span className="text-brand-400">AIDT</span>
               </span>
               <span className="hidden sm:block text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
-                মাস্টারমাইন্ড এইড • 2026
+                মাস্টারমাইন্ড এইডটি • 2026
               </span>
             </div>
           </Link>
@@ -201,13 +201,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </AnimatePresence>
               </div>
             ) : (
-              <Link
-                to="/login"
-                onClick={() => playUiClickSound()}
-                className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white rounded-xl text-xs font-black shadow-md shadow-brand-500/20 transition shrink-0"
-              >
-                Log In
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/login"
+                  onClick={() => playUiClickSound()}
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-extrabold transition shrink-0"
+                >
+                  Log In
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => playUiClickSound()}
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white rounded-xl text-xs font-black shadow-md shadow-brand-500/20 transition shrink-0"
+                >
+                  Sign Up
+                </Link>
+              </div>
             )}
 
             {/* Mobile Hamburger Menu Drawer Toggle */}

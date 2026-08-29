@@ -15,6 +15,22 @@ export interface User {
   updatedAt: string;
 }
 
+export interface WebsiteContentItem {
+  id: string;
+  locationKey: string; // e.g. 'homepage_hero', 'homepage_promo_video', 'about_section', 'course_banner', 'gallery_item_1'
+  sectionName: string; // Human readable section title
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  mediaType: 'IMAGE' | 'VIDEO' | 'TEXT';
+  mediaUrl?: string; // Image URL or Video URL
+  altText?: string;
+  buttonText?: string;
+  buttonUrl?: string;
+  updatedAt: string;
+  updatedBy?: string;
+}
+
 export type CourseStatus = 'DRAFT' | 'PENDING_REVIEW' | 'PUBLISHED' | 'UNPUBLISHED' | 'ARCHIVED';
 export type CourseLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'All Levels';
 
@@ -48,8 +64,10 @@ export interface Course {
   slug: string;
   description: string;
   thumbnail: string;
+  image?: string;
   price: number;
   discountPrice?: number;
+  originalPrice?: number;
   isFree?: boolean;
   category: string;
   categoryId: string;
@@ -59,6 +77,11 @@ export interface Course {
   teacherId: string;
   teacherName: string;
   teacherAvatar?: string;
+  instructor?: {
+    name: string;
+    avatar?: string;
+    title?: string;
+  };
   rating: number;
   reviewCount: number;
   studentsCount: number;
@@ -69,6 +92,10 @@ export interface Course {
   requirements: string[];
   features: string[];
   lessons: Lesson[];
+  curriculum?: Array<{
+    sectionTitle: string;
+    lessons: Array<{ title: string; duration: string; isPreview?: boolean }>;
+  }>;
   pdfResources?: PdfResource[];
   createdAt: string;
   updatedAt: string;

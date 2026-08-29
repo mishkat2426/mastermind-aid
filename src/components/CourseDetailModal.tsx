@@ -17,7 +17,7 @@ import {
   Zap,
   Smartphone
 } from 'lucide-react';
-import { Course } from '../data/coursesData';
+import { Course } from '../types/platform';
 
 interface CourseDetailModalProps {
   course: Course | null;
@@ -167,7 +167,7 @@ export const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
                 activeTab === 'syllabus' ? 'text-brand-600 font-black' : 'hover:text-slate-900'
               }`}
             >
-              Course Curriculum ({course.curriculum.reduce((acc, curr) => acc + curr.lessons.length, 0)} Lessons)
+              Course Curriculum ({course.curriculum ? course.curriculum.reduce((acc: number, curr: any) => acc + curr.lessons.length, 0) : course.lessons?.length || course.lessonsCount || 0} Lessons)
               {activeTab === 'syllabus' && (
                 <motion.div layoutId="modalTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-500 rounded-full" />
               )}
@@ -206,7 +206,7 @@ export const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
                   ) : (
                     <>
                       <img
-                        src={course.image}
+                        src={course.thumbnail || (course as any).image}
                         alt={course.title}
                         className="w-full h-full object-cover opacity-75"
                       />
@@ -272,40 +272,54 @@ export const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
             {activeTab === 'syllabus' && (
               <div className="space-y-4 animate-in fade-in duration-200">
                 <h3 className="text-base font-bold text-[#0A192F]">Curriculum & Modules Breakdown</h3>
-                {course.curriculum.map((section, idx) => {
-                  const isOpen = openSectionIndex === idx;
+                {course.curriculum && course.curriculum.length > 0 ? (
+                  course.curriculum.map((section: any, idx: number) => {
+                    const isOpen = openSectionIndex === idx;
 
-                  return (
-                    <div key={idx} className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50">
-                      <button
-                        onClick={() => setOpenSectionIndex(isOpen ? -1 : idx)}
-                        className="w-full text-left px-5 py-4 font-bold text-sm text-[#0A192F] flex items-center justify-between hover:bg-slate-100 transition"
-                      >
-                        <span>{section.sectionTitle}</span>
-                        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                      </button>
+                    return (
+                      <div key={idx} className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50">
+                        <button
+                          onClick={() => setOpenSectionIndex(isOpen ? -1 : idx)}
+                          className="w-full text-left px-5 py-4 font-bold text-sm text-[#0A192F] flex items-center justify-between hover:bg-slate-100 transition"
+                        >
+                          <span>{section.sectionTitle}</span>
+                          <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                        </button>
 
-                      {isOpen && (
-                        <div className="bg-white border-t border-slate-200 divide-y divide-slate-100">
-                          {section.lessons.map((lesson, lIdx) => (
-                            <div key={lIdx} className="px-5 py-3 flex items-center justify-between text-xs text-slate-700">
-                              <div className="flex items-center gap-2 font-medium">
-                                <Play className="w-3.5 h-3.5 text-brand-500" />
-                                <span>{lesson.title}</span>
-                                {lesson.isPreview && (
-                                  <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded">
-                                    Free Preview
-                                  </span>
-                                )}
+                        {isOpen && (
+                          <div className="bg-white border-t border-slate-200 divide-y divide-slate-100">
+                            {section.lessons.map((lesson: any, lIdx: number) => (
+                              <div key={lIdx} className="px-5 py-3 flex items-center justify-between text-xs text-slate-700">
+                                <div className="flex items-center gap-2 font-medium">
+                                  <Play className="w-3.5 h-3.5 text-brand-500" />
+                                  <span>{lesson.title}</span>
+                                  {lesson.isPreview && (
+                                    <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded">
+                                      Free Preview
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-slate-400 font-semibold">{lesson.duration}</span>
                               </div>
-                              <span className="text-slate-400 font-semibold">{lesson.duration}</span>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 divide-y divide-slate-100">
+                    {(course.lessons || []).map((lesson: any, lIdx: number) => (
+                      <div key={lesson.id || lIdx} className="py-3 flex items-center justify-between text-xs text-slate-700">
+                        <div className="flex items-center gap-2 font-medium">
+                          <Play className="w-3.5 h-3.5 text-brand-500" />
+                          <span>{lesson.title}</span>
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+                        <span className="text-slate-400 font-semibold">{lesson.duration}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -314,13 +328,13 @@ export const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
               <div className="space-y-4 animate-in fade-in duration-200">
                 <div className="flex items-center gap-4 bg-slate-50 p-5 rounded-2xl border border-slate-200">
                   <img
-                    src={course.instructor.avatar}
-                    alt={course.instructor.name}
-                    className="w-16 h-16 rounded-full object-cover ring-4 ring-brand-100"
+                    src={course.teacherAvatar || (course as any).instructor?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d'}
+                    alt={course.teacherName || (course as any).instructor?.name || 'Instructor'}
+                    className="w-16 h-16 rounded-2xl object-cover ring-2 ring-brand-100"
                   />
                   <div>
-                    <h4 className="text-lg font-bold text-[#0A192F]">{course.instructor.name}</h4>
-                    <p className="text-xs font-semibold text-brand-600">{course.instructor.title}</p>
+                    <h4 className="text-lg font-bold text-[#0A192F]">{course.teacherName || (course as any).instructor?.name || 'Hasibul Islam'}</h4>
+                    <p className="text-xs font-semibold text-brand-600">{(course as any).instructor?.title || 'Lead Instructor'}</p>
                     <p className="text-xs text-slate-500 mt-1">10+ Years experience in software & digital marketing training in Bangladesh.</p>
                   </div>
                 </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { DBService } from '../../services/db';
-import { Course, User, Transaction, Review, Comment, Category, AuditLog, ReviewStatus, CommentStatus, UserRole } from '../../types/platform';
+import { Course, User, Transaction, Review, Comment, Category, AuditLog, ReviewStatus, CommentStatus, UserRole, WebsiteContentItem } from '../../types/platform';
 import { 
   Layout, 
   Users, 
@@ -30,7 +30,9 @@ import {
   Copy,
   AlertTriangle,
   RotateCcw,
-  Key
+  Key,
+  Globe,
+  Video
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -38,7 +40,7 @@ export const AdminDashboard: React.FC = () => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'courses' | 'users' | 'teachers' | 'reviews' | 'comments' | 'transactions' | 'categories' | 'audit' | 'administrators'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'courses' | 'users' | 'teachers' | 'reviews' | 'comments' | 'transactions' | 'categories' | 'audit' | 'administrators' | 'website-content'>('overview');
   
   // Administrator & Access Code Form states
   const [newAdminName, setNewAdminName] = useState('');
@@ -100,7 +102,151 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  // Admin Course Edit & Content Modal States
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [showPdfModal, setShowPdfModal] = useState(false);
+  const [selectedCourseForMedia, setSelectedCourseForMedia] = useState<Course | null>(null);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+
+  // Website Content & CMS State
+  const websiteContents = DBService.getWebsiteContents();
+  const [editingContentItem, setEditingContentItem] = useState<WebsiteContentItem | null>(null);
+  const [showNewLocationModal, setShowNewLocationModal] = useState(false);
+
+  const [contentLocationKey, setContentLocationKey] = useState('');
+  const [contentSectionName, setContentSectionName] = useState('');
+  const [contentTitle, setContentTitle] = useState('');
+  const [contentSubtitle, setContentSubtitle] = useState('');
+  const [contentDescription, setContentDescription] = useState('');
+  const [contentMediaType, setContentMediaType] = useState<'IMAGE' | 'VIDEO' | 'TEXT'>('IMAGE');
+  const [contentMediaUrl, setContentMediaUrl] = useState('');
+  const [contentAltText, setContentAltText] = useState('');
+  const [contentButtonText, setContentButtonText] = useState('');
+  const [contentButtonUrl, setContentButtonUrl] = useState('');
+
+  const handleOpenEditContent = (item: WebsiteContentItem) => {
+    setEditingContentItem(item);
+    setContentLocationKey(item.locationKey);
+    setContentSectionName(item.sectionName);
+    setContentTitle(item.title || '');
+    setContentSubtitle(item.subtitle || '');
+    setContentDescription(item.description || '');
+    setContentMediaType(item.mediaType);
+    setContentMediaUrl(item.mediaUrl || '');
+    setContentAltText(item.altText || '');
+    setContentButtonText(item.buttonText || '');
+    setContentButtonUrl(item.buttonUrl || '');
+  };
+
+  const handleSaveWebsiteContent = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contentLocationKey.trim()) return;
+    DBService.updateWebsiteContent(contentLocationKey, {
+      sectionName: contentSectionName || contentLocationKey,
+      title: contentTitle,
+      subtitle: contentSubtitle,
+      description: contentDescription,
+      mediaType: contentMediaType,
+      mediaUrl: contentMediaUrl,
+      altText: contentAltText,
+      buttonText: contentButtonText,
+      buttonUrl: contentButtonUrl,
+    }, currentUser?.name);
+    setEditingContentItem(null);
+    setShowNewLocationModal(false);
+    alert('Website section content updated successfully! Public page will display updated media immediately.');
+    window.location.reload();
+  };
+
+  // Edit Course Form State
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editThumbnail, setEditThumbnail] = useState('');
+  const [editPrice, setEditPrice] = useState('2500');
+  const [editCategory, setEditCategory] = useState('Web Development');
+  const [editDuration, setEditDuration] = useState('15');
+  const [editStatus, setEditStatus] = useState<Course['status']>('PUBLISHED');
+
+  // Video Form State
+  const [videoTitle, setVideoTitle] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
+  const [videoDuration, setVideoDuration] = useState('15 mins');
+
+  // PDF Form State
+  const [pdfTitle, setPdfTitle] = useState('');
+  const [pdfUrl, setPdfUrl] = useState('');
+
   // Course Actions
+  const handleOpenEditCourse = (course: Course) => {
+    setEditingCourse(course);
+    setEditTitle(course.title);
+    setEditDescription(course.description);
+    setEditThumbnail(course.thumbnail);
+    setEditPrice(course.price.toString());
+    setEditCategory(course.category);
+    setEditDuration(course.durationHours.toString());
+    setEditStatus(course.status);
+  };
+
+  const handleSaveEditCourse = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCourse || !editTitle.trim()) return;
+    DBService.updateCourse(editingCourse.id, {
+      title: editTitle,
+      description: editDescription,
+      thumbnail: editThumbnail,
+      price: parseFloat(editPrice) || 0,
+      isFree: parseFloat(editPrice) === 0,
+      category: editCategory,
+      categoryId: editCategory.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      durationHours: parseInt(editDuration) || 12,
+      status: editStatus,
+    }, currentUser?.name);
+    setEditingCourse(null);
+    alert('Course updated successfully!');
+    window.location.reload();
+  };
+
+  const handleAddVideoSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCourseForMedia || !videoTitle.trim() || !videoUrl.trim()) return;
+    DBService.addLessonToCourse(selectedCourseForMedia.id, {
+      title: videoTitle,
+      description: `Lecture on ${videoTitle}`,
+      videoUrl: videoUrl,
+      duration: videoDuration || '15 mins',
+      order: (selectedCourseForMedia.lessons.length || 0) + 1,
+      isPreview: false,
+    }, currentUser?.name);
+    setVideoTitle('');
+    setVideoUrl('');
+    setShowVideoModal(false);
+    alert('Video lecture added to course!');
+    window.location.reload();
+  };
+
+  const handleAddPdfSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCourseForMedia || !pdfTitle.trim() || !pdfUrl.trim()) return;
+    DBService.addPdfResourceToCourse(selectedCourseForMedia.id, {
+      title: pdfTitle,
+      url: pdfUrl,
+      fileSize: '2.5 MB',
+    }, currentUser?.name);
+    setPdfTitle('');
+    setPdfUrl('');
+    setShowPdfModal(false);
+    alert('PDF document attached to course!');
+    window.location.reload();
+  };
+
+  const handleTogglePublishCourse = (course: Course) => {
+    const nextStatus = course.status === 'PUBLISHED' ? 'UNPUBLISHED' : 'PUBLISHED';
+    DBService.updateCourse(course.id, { status: nextStatus }, currentUser?.name);
+    window.location.reload();
+  };
+
   const handleCreateCourseSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     DBService.createCourse({
@@ -225,7 +371,7 @@ export const AdminDashboard: React.FC = () => {
               A
             </div>
             <div>
-              <h2 className="text-sm font-black tracking-tight">Mastermind Admin</h2>
+              <h2 className="text-sm font-black tracking-tight">MASTERMIND AIDT Admin</h2>
               <span className="text-[10px] text-purple-400 font-bold uppercase tracking-wider">Super CMS Portal</span>
             </div>
           </Link>
@@ -233,6 +379,7 @@ export const AdminDashboard: React.FC = () => {
           <nav className="space-y-1 text-xs font-bold">
             {[
               { id: 'overview', label: 'Overview & Analytics', icon: <Layout className="w-4 h-4" /> },
+              { id: 'website-content', label: 'Website Content & CMS', icon: <Globe className="w-4 h-4 text-sky-400" /> },
               { id: 'courses', label: 'Course Management', icon: <BookOpen className="w-4 h-4" /> },
               { id: 'users', label: 'Users & Roles', icon: <Users className="w-4 h-4" /> },
               { id: 'teachers', label: 'Teachers', icon: <GraduationCap className="w-4 h-4" /> },
@@ -347,6 +494,88 @@ export const AdminDashboard: React.FC = () => {
           </div>
         )}
 
+        {/* Tab: Website Content CMS */}
+        {activeTab === 'website-content' && (
+          <div className="bg-[#0A192F] p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-4">
+              <div>
+                <h3 className="text-xl font-black flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-sky-400" />
+                  <span>Website Content & Media Location Manager</span>
+                </h3>
+                <p className="text-xs text-slate-400 font-medium mt-1">
+                  Manage homepage hero images, promotional videos, banner content, about section, and custom website locations dynamically.
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  setEditingContentItem(null);
+                  setContentLocationKey(`custom_section_${Date.now()}`);
+                  setContentSectionName('New Custom Website Section');
+                  setContentTitle('');
+                  setContentSubtitle('');
+                  setContentDescription('');
+                  setContentMediaType('IMAGE');
+                  setContentMediaUrl('');
+                  setContentAltText('');
+                  setContentButtonText('');
+                  setContentButtonUrl('');
+                  setShowNewLocationModal(true);
+                }}
+                className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs rounded-xl shadow transition flex items-center gap-1.5"
+              >
+                + Add Content Location
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {websiteContents.map((item) => (
+                <div key={item.id} className="bg-[#071325] p-5 rounded-2xl border border-slate-800 space-y-3 relative group">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-[10px] font-extrabold uppercase bg-sky-500/20 text-sky-300 px-2.5 py-1 rounded-full">
+                        Location: {item.locationKey}
+                      </span>
+                      <h4 className="text-sm font-bold text-white mt-2">{item.sectionName}</h4>
+                    </div>
+
+                    <button
+                      onClick={() => handleOpenEditContent(item)}
+                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-purple-300 rounded-xl text-xs font-bold transition flex items-center gap-1"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" /> Manage
+                    </button>
+                  </div>
+
+                  {item.mediaUrl && (
+                    <div className="h-32 bg-slate-950 rounded-xl overflow-hidden relative border border-slate-800 flex items-center justify-center">
+                      {item.mediaType === 'VIDEO' ? (
+                        <div className="text-center p-4">
+                          <Video className="w-8 h-8 text-sky-400 mx-auto mb-1" />
+                          <div className="text-[10px] text-slate-300 truncate max-w-xs font-mono">{item.mediaUrl}</div>
+                        </div>
+                      ) : (
+                        <img src={item.mediaUrl} alt={item.altText || item.sectionName} className="w-full h-full object-cover" />
+                      )}
+                    </div>
+                  )}
+
+                  <div className="space-y-1 text-xs text-slate-300">
+                    {item.title && <div className="font-bold text-white line-clamp-1">{item.title}</div>}
+                    {item.description && <div className="text-slate-400 text-[11px] line-clamp-2">{item.description}</div>}
+                  </div>
+
+                  <div className="text-[10px] text-slate-500 font-mono pt-2 border-t border-slate-800/80 flex justify-between">
+                    <span>Type: {item.mediaType}</span>
+                    <span>Updated: {new Date(item.updatedAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Tab 2: Courses */}
         {activeTab === 'courses' && (
           <div className="bg-[#0A192F] p-6 rounded-3xl border border-slate-800 space-y-4">
@@ -375,12 +604,45 @@ export const AdminDashboard: React.FC = () => {
                           {c.status}
                         </span>
                       </td>
-                      <td className="p-3 text-right space-x-2">
-                        <button onClick={() => handleDuplicateCourse(c)} className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300" title="Duplicate Course">
-                          <Copy className="w-4 h-4" />
+                      <td className="p-3 text-right space-x-1.5 flex items-center justify-end">
+                        <button
+                          onClick={() => handleOpenEditCourse(c)}
+                          className="px-2.5 py-1 bg-[#071325] hover:bg-slate-800 text-purple-300 border border-slate-700 rounded-lg text-[10px] font-bold flex items-center gap-1"
+                          title="Edit Course Details"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" /> Edit
                         </button>
+
+                        <button
+                          onClick={() => { setSelectedCourseForMedia(c); setShowVideoModal(true); }}
+                          className="px-2.5 py-1 bg-brand-500/20 hover:bg-brand-500/30 text-brand-300 rounded-lg text-[10px] font-bold"
+                          title="Add Video Lecture"
+                        >
+                          + Video
+                        </button>
+
+                        <button
+                          onClick={() => { setSelectedCourseForMedia(c); setShowPdfModal(true); }}
+                          className="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-lg text-[10px] font-bold"
+                          title="Attach PDF Resource"
+                        >
+                          + PDF
+                        </button>
+
+                        <button
+                          onClick={() => handleTogglePublishCourse(c)}
+                          className={`p-1.5 rounded-lg text-[10px] font-bold ${c.status === 'PUBLISHED' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-700 text-slate-300'}`}
+                          title="Toggle Publish Status"
+                        >
+                          {c.status === 'PUBLISHED' ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                        </button>
+
+                        <button onClick={() => handleDuplicateCourse(c)} className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300" title="Duplicate Course">
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                        
                         <button onClick={() => handleDeleteCourse(c.id)} className="p-1.5 bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 rounded-lg" title="Delete Course">
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </td>
                     </tr>
@@ -710,19 +972,19 @@ export const AdminDashboard: React.FC = () => {
 
       </main>
 
-      {/* Course Modal */}
-      {showCourseModal && (
+      {/* Edit Course Modal */}
+      {editingCourse && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#0A192F] text-white p-6 sm:p-8 rounded-3xl max-w-lg w-full border border-slate-700 shadow-2xl space-y-4">
-            <h3 className="text-xl font-black">Create New Platform Course</h3>
-            <form onSubmit={handleCreateCourseSubmit} className="space-y-4 text-xs font-bold">
+          <div className="bg-[#0A192F] text-white p-6 sm:p-8 rounded-3xl max-w-lg w-full border border-slate-700 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-black">Edit Course: {editingCourse.title}</h3>
+            <form onSubmit={handleSaveEditCourse} className="space-y-4 text-xs font-bold">
               <div>
                 <label className="block text-slate-300 mb-1">Course Title</label>
                 <input
                   type="text"
                   required
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
                   className="w-full px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"
                 />
               </div>
@@ -731,8 +993,8 @@ export const AdminDashboard: React.FC = () => {
                 <div>
                   <label className="block text-slate-300 mb-1">Category</label>
                   <select
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value)}
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
                     className="w-full px-3 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"
                   >
                     {categories.map((c) => (
@@ -745,26 +1007,257 @@ export const AdminDashboard: React.FC = () => {
                   <input
                     type="number"
                     required
-                    value={newPrice}
-                    onChange={(e) => setNewPrice(e.target.value)}
+                    value={editPrice}
+                    onChange={(e) => setEditPrice(e.target.value)}
                     className="w-full px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"
                   />
                 </div>
               </div>
 
               <div>
+                <label className="block text-slate-300 mb-1">Thumbnail Image URL</label>
+                <input
+                  type="text"
+                  required
+                  value={editThumbnail}
+                  onChange={(e) => setEditThumbnail(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"
+                />
+              </div>
+
+              <div>
                 <label className="block text-slate-300 mb-1">Description</label>
                 <textarea
                   rows={3}
-                  value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
                   className="w-full p-3 bg-[#071325] border border-slate-700 rounded-xl text-white"
                 />
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowCourseModal(false)} className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl">Cancel</button>
-                <button type="submit" className="px-5 py-2 bg-purple-600 text-white rounded-xl font-extrabold shadow">Publish Course</button>
+                <button type="button" onClick={() => setEditingCourse(null)} className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl">Cancel</button>
+                <button type="submit" className="px-5 py-2 bg-purple-600 text-white rounded-xl font-extrabold shadow">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Video Modal */}
+      {showVideoModal && selectedCourseForMedia && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#0A192F] text-white p-6 sm:p-8 rounded-3xl max-w-md w-full border border-slate-700 shadow-2xl space-y-4">
+            <h3 className="text-xl font-black">Add Video to {selectedCourseForMedia.title}</h3>
+            <form onSubmit={handleAddVideoSubmit} className="space-y-4 text-xs font-bold">
+              <div>
+                <label className="block text-slate-300 mb-1">Video Title</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Module 1: System Overview"
+                  value={videoTitle}
+                  onChange={(e) => setVideoTitle(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-1">Video URL (YouTube embed or MP4)</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="https://www.youtube.com/embed/..."
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-1">Duration</label>
+                <input
+                  type="text"
+                  placeholder="15 mins"
+                  value={videoDuration}
+                  onChange={(e) => setVideoDuration(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setShowVideoModal(false)} className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl">Cancel</button>
+                <button type="submit" className="px-5 py-2 bg-brand-500 text-white rounded-xl font-extrabold shadow">+ Add Video</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Admin PDF Modal */}
+      {showPdfModal && selectedCourseForMedia && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#0A192F] text-white p-6 sm:p-8 rounded-3xl max-w-md w-full border border-slate-700 shadow-2xl space-y-4">
+            <h3 className="text-xl font-black">Attach PDF to {selectedCourseForMedia.title}</h3>
+            <form onSubmit={handleAddPdfSubmit} className="space-y-4 text-xs font-bold">
+              <div>
+                <label className="block text-slate-300 mb-1">PDF Resource Title</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Cheat Sheet PDF"
+                  value={pdfTitle}
+                  onChange={(e) => setPdfTitle(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-1">PDF File Document URL</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="https://example.com/file.pdf"
+                  value={pdfUrl}
+                  onChange={(e) => setPdfUrl(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setShowPdfModal(false)} className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl">Cancel</button>
+                <button type="submit" className="px-5 py-2 bg-amber-500 text-white rounded-xl font-extrabold shadow">+ Attach PDF</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Website Content Editor Modal */}
+      {(editingContentItem || showNewLocationModal) && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#0A192F] text-white p-6 sm:p-8 rounded-3xl max-w-lg w-full border border-slate-700 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-black">
+              {editingContentItem ? `Manage Content: ${editingContentItem.sectionName}` : 'Add New Content Location'}
+            </h3>
+
+            <form onSubmit={handleSaveWebsiteContent} className="space-y-4 text-xs font-bold">
+              <div>
+                <label className="block text-slate-300 mb-1">Section Location Key (Unique identifier)</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. homepage_hero"
+                  value={contentLocationKey}
+                  onChange={(e) => setContentLocationKey(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 mb-1">Section Display Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Homepage Hero Showcase"
+                  value={contentSectionName}
+                  onChange={(e) => setContentSectionName(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-300 mb-1">Media Type</label>
+                  <select
+                    value={contentMediaType}
+                    onChange={(e) => setContentMediaType(e.target.value as any)}
+                    className="w-full px-3 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"
+                  >
+                    <option value="IMAGE">Image</option>
+                    <option value="VIDEO">Video</option>
+                    <option value="TEXT">Text Only</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 mb-1">Media File / Video URL</label>
+                  <input
+                    type="text"
+                    placeholder="https://images.unsplash.com/... or https://youtube.com/embed/..."
+                    value={contentMediaUrl}
+                    onChange={(e) => setContentMediaUrl(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 mb-1">Headline Title</label>
+                <input
+                  type="text"
+                  placeholder="Main Section Headline"
+                  value={contentTitle}
+                  onChange={(e) => setContentTitle(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 mb-1">Subtitle / Badge Text</label>
+                <input
+                  type="text"
+                  placeholder="Subtitle or Badge Label"
+                  value={contentSubtitle}
+                  onChange={(e) => setContentSubtitle(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 mb-1">Description Paragraph</label>
+                <textarea
+                  rows={3}
+                  placeholder="Section overview paragraph..."
+                  value={contentDescription}
+                  onChange={(e) => setContentDescription(e.target.value)}
+                  className="w-full p-3 bg-[#071325] border border-slate-700 rounded-xl text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-300 mb-1">Button Text</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Explore All Courses"
+                    value={contentButtonText}
+                    onChange={(e) => setContentButtonText(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 mb-1">Button Target Link URL</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. /courses"
+                    value={contentButtonUrl}
+                    onChange={(e) => setContentButtonUrl(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => { setEditingContentItem(null); setShowNewLocationModal(false); }}
+                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-extrabold shadow"
+                >
+                  Save Section Content
+                </button>
               </div>
             </form>
           </div>

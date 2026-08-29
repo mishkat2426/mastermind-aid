@@ -12,7 +12,8 @@ import {
   Key,
   GraduationCap,
   UserCheck,
-  Phone
+  Phone,
+  UserPlus
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { UserRole } from '../../types/platform';
@@ -145,7 +146,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
             <BrainCircuit className="w-7 h-7 stroke-[2.5]" />
           </div>
           <span className="text-3xl font-black tracking-tight">
-            Mastermind <span className="text-brand-400">Aid</span>
+            MASTERMIND <span className="text-brand-400">AIDT</span>
           </span>
         </Link>
 
@@ -165,6 +166,21 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
 
       <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md relative z-10 space-y-4">
         
+        {/* Top Auth Mode Switcher (Sign In vs Sign Up) */}
+        <div className="bg-[#071325] p-1.5 rounded-2xl border border-brand-500/30 flex text-xs font-black shadow-lg">
+          <div className="flex-1 py-2.5 rounded-xl bg-brand-500 text-white shadow-md flex items-center justify-center gap-1.5">
+            <UserCheck className="w-4 h-4" />
+            <span>Sign In</span>
+          </div>
+          <Link
+            to="/register"
+            className="flex-1 py-2.5 rounded-xl text-slate-300 hover:text-white flex items-center justify-center gap-1.5 transition hover:bg-white/5"
+          >
+            <UserPlus className="w-4 h-4 text-brand-400" />
+            <span>Sign Up (New User) →</span>
+          </Link>
+        </div>
+
         {/* Role Selector Tabs */}
         <div className="bg-[#071325] p-1.5 rounded-2xl border border-slate-800 grid grid-cols-3 text-xs font-bold">
           <button
@@ -246,6 +262,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
                 <span>Sign In as Student</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
+
+              <div className="pt-4 border-t border-slate-800/80 text-center space-y-2">
+                <div className="text-xs text-slate-400 font-medium">New student to MASTERMIND AIDT?</div>
+                <Link
+                  to="/register"
+                  className="w-full py-3 bg-brand-500/20 hover:bg-brand-500/30 text-brand-300 font-extrabold text-xs rounded-2xl border border-brand-400/40 flex items-center justify-center gap-2 transition shadow-md"
+                >
+                  <UserPlus className="w-4 h-4 text-amber-300" />
+                  <span>Create Free Account (Sign Up) →</span>
+                </Link>
+              </div>
             </form>
           </div>
         )}
@@ -442,6 +469,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
                 <span>Secure Admin Login</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
+
+              <div className="pt-3 border-t border-slate-800/80 text-center">
+                <Link to="/register" className="text-xs text-slate-400 hover:text-purple-300 font-extrabold hover:underline">
+                  Need a new account? Register / Sign Up Here →
+                </Link>
+              </div>
             </form>
           </div>
         )}

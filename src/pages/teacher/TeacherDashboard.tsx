@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { DBService } from '../../services/db';
-import { Course, Lesson, PdfResource } from '../../types/platform';
+import { Course, Lesson, PdfResource, WebsiteContentItem } from '../../types/platform';
 import { 
   GraduationCap, 
   BookOpen, 
@@ -21,7 +21,8 @@ import {
   EyeOff,
   Video,
   X,
-  Upload
+  Upload,
+  Globe
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -29,7 +30,7 @@ export const TeacherDashboard: React.FC = () => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<'courses' | 'students' | 'resources'>('courses');
+  const [activeTab, setActiveTab] = useState<'courses' | 'students' | 'resources' | 'website-content'>('courses');
   
   // Selected course for editing
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
@@ -210,7 +211,7 @@ export const TeacherDashboard: React.FC = () => {
               T
             </div>
             <div>
-              <h2 className="text-sm font-black tracking-tight">Instructor CMS</h2>
+              <h2 className="text-sm font-black tracking-tight">MASTERMIND AIDT Instructor CMS</h2>
               <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Teacher Portal</span>
             </div>
           </Link>
@@ -218,6 +219,7 @@ export const TeacherDashboard: React.FC = () => {
           <nav className="space-y-1 text-xs font-bold">
             {[
               { id: 'courses', label: 'My Courses & Lessons', icon: <BookOpen className="w-4 h-4" /> },
+              { id: 'website-content', label: 'Website Media & CMS', icon: <Globe className="w-4 h-4 text-emerald-400" /> },
               { id: 'students', label: 'Enrolled Students', icon: <Users className="w-4 h-4" /> },
               { id: 'resources', label: 'PDFs & Materials', icon: <FileText className="w-4 h-4" /> },
             ].map((item) => (
@@ -465,6 +467,54 @@ export const TeacherDashboard: React.FC = () => {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 4: Website Media & CMS */}
+        {activeTab === 'website-content' && (
+          <div className="bg-[#0A192F] p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6">
+            <div>
+              <h3 className="text-xl font-black flex items-center gap-2">
+                <Globe className="w-5 h-5 text-emerald-400" />
+                <span>Permitted Website Media & Section Manager</span>
+              </h3>
+              <p className="text-xs text-slate-400 font-medium mt-1">
+                Instructors can manage promotional section images, video embeds, and educational section media across the platform.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {DBService.getWebsiteContents().map((item) => (
+                <div key={item.id} className="bg-[#071325] p-5 rounded-2xl border border-slate-800 space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-[10px] font-extrabold uppercase bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full">
+                        Location: {item.locationKey}
+                      </span>
+                      <h4 className="text-sm font-bold text-white mt-2">{item.sectionName}</h4>
+                    </div>
+                  </div>
+
+                  {item.mediaUrl && (
+                    <div className="h-32 bg-slate-950 rounded-xl overflow-hidden relative border border-slate-800 flex items-center justify-center">
+                      {item.mediaType === 'VIDEO' ? (
+                        <div className="text-center p-4">
+                          <Video className="w-8 h-8 text-emerald-400 mx-auto mb-1" />
+                          <div className="text-[10px] text-slate-300 truncate max-w-xs font-mono">{item.mediaUrl}</div>
+                        </div>
+                      ) : (
+                        <img src={item.mediaUrl} alt={item.sectionName} className="w-full h-full object-cover" />
+                      )}
+                    </div>
+                  )}
+
+                  <div className="space-y-1 text-xs text-slate-300">
+                    {item.title && <div className="font-bold text-white line-clamp-1">{item.title}</div>}
+                    {item.description && <div className="text-slate-400 text-[11px] line-clamp-2">{item.description}</div>}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

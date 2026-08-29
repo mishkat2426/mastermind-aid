@@ -54,7 +54,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               <div className="w-9 h-9 rounded-xl bg-brand-500 flex items-center justify-center text-white font-bold">
                 <BrainCircuit className="w-5 h-5" />
               </div>
-              <span className="text-xl font-black">Mastermind <span className="text-brand-400">Aid</span></span>
+              <span className="text-xl font-black">MASTERMIND <span className="text-brand-400">AIDT</span></span>
             </div>
 
             <h3 className="text-lg font-black pt-1">

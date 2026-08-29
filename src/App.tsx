@@ -170,8 +170,15 @@ export function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-          {/* Transactions Page */}
-          <Route path="/transactions" element={<TransactionsPage />} />
+          {/* Transactions Page (Protected) */}
+          <Route
+            path="/transactions"
+            element={
+              <ProtectedRoute allowedRoles={['STUDENT', 'TEACHER', 'ADMIN']}>
+                <TransactionsPage />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Protected Dashboards */}
           <Route
