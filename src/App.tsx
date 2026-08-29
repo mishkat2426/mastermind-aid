@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Preloader } from './components/Preloader';
-import { CursorGlow } from './components/CursorGlow';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { MarqueePartners } from './components/MarqueePartners';
@@ -124,9 +123,6 @@ export function App() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col relative font-sans">
       
-      {/* Ambient Radial Cursor Follower Light */}
-      <CursorGlow />
-
       {/* Site Entrance Preloader Splash */}
       {!isLoaded && <Preloader onComplete={() => setIsLoaded(true)} />}
 
