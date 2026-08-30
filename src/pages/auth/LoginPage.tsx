@@ -145,9 +145,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
           <div className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${themeColors[activeRole]} flex items-center justify-center text-white shadow-xl`}>
             <BrainCircuit className="w-7 h-7 stroke-[2.5]" />
           </div>
-          <span className="text-3xl font-black tracking-tight">
-            MASTERMIND <span className="text-brand-400">AIDT</span>
-          </span>
+          <span className="text-base sm:text-xl font-black tracking-tight leading-none">
+                Mastermind <span className="text-brand-400">AidlT</span>
+              </span>
         </Link>
 
         <div>
@@ -273,13 +273,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
                     Sign Up
                   </Link>
                 </p>
-                <Link
+                {/* <Link
                   to="/register"
                   className="w-full py-2.5 bg-brand-500/20 hover:bg-brand-500/30 text-brand-300 font-extrabold text-xs rounded-xl border border-brand-400/40 flex items-center justify-center gap-2 transition shadow-md"
                 >
                   <UserPlus className="w-4 h-4 text-amber-300" />
                   <span>Create Account (Sign Up) →</span>
-                </Link>
+                </Link> */}
               </div>
             </form>
           </div>

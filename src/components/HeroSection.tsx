@@ -45,7 +45,8 @@ const fadeUpVariant = (delay: number = 0) => ({
   },
 });
 
-export const HeroSection: React.FC<HeroSectionProps> = ({
+export const 
+HeroSection: React.FC<HeroSectionProps> = ({
   onExploreCourses,
   onOpenPreview,
   onOpenPathFinder,
@@ -56,7 +57,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   // Format real privacy-friendly tickers from database
   const tickerItems = realEnrollments.length > 0
     ? realEnrollments.slice(0, 5).map((e) => `⚡ A student recently enrolled in ${e.courseTitle}`)
-    : ['⚡ MASTERMIND AIDT • Premier AI & IT Skill Development Platform 2026'];
+    : ['⚡ Mastermind AidlT • Premier AI & IT Skill Development Platform 2026'];
 
   const heroContent = DBService.getWebsiteContent('homepage_hero');
   const promoVideoContent = DBService.getWebsiteContent('homepage_promo_video');

@@ -68,13 +68,13 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
               <div className="w-10 h-10 rounded-xl bg-brand-500 flex items-center justify-center text-white shadow-md">
                 <BrainCircuit className="w-6 h-6" />
               </div>
-              <span className="text-2xl font-black tracking-tight">
-                MASTERMIND <span className="text-brand-400">AIDT</span>
+              <span className="text-base sm:text-xl font-black tracking-tight leading-none">
+                Mastermind <span className="text-brand-400">AidlT</span>
               </span>
             </div>
 
             <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
-              MASTERMIND AIDT is Bangladesh's premier skill development platform, delivering high-impact online courses in Web Development, WordPress, Digital Marketing, SEO, and Freelancing.
+              Mastermind AidlT is Bangladesh's premier skill development platform, delivering high-impact online courses in Web Development, WordPress, Digital Marketing, SEO, and Freelancing.
             </p>
 
             <div className="pt-2 flex items-center gap-3">

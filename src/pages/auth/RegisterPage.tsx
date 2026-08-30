@@ -55,9 +55,9 @@ export const RegisterPage: React.FC = () => {
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center text-white shadow-xl shadow-brand-500/30">
             <BrainCircuit className="w-7 h-7 stroke-[2.5]" />
           </div>
-          <span className="text-3xl font-black tracking-tight">
-            MASTERMIND <span className="text-brand-400">AIDT</span>
-          </span>
+         <span className="text-base sm:text-xl font-black tracking-tight leading-none">
+                Mastermind <span className="text-brand-400">AidlT</span>
+              </span>
         </Link>
         <div>
           <h2 className="text-2xl font-black">Create Your Account</h2>
@@ -73,14 +73,14 @@ export const RegisterPage: React.FC = () => {
           <form onSubmit={handleRegisterSubmit} className="space-y-4">
             
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
+              {/* <label className="block text-xs font-bold text-slate-300 mb-1">
                 Select Account Role
-              </label>
-              <div className="grid grid-cols-2 gap-2">
+              </label> */}
+              <div className="flex justify-center  gap-2">
                 <button
                   type="button"
                   onClick={() => setRole('STUDENT')}
-                  className={`py-2.5 rounded-xl text-xs font-black transition ${
+                  className={`py-2.5 px-2 rounded-xl text-xs font-black transition ${
                     role === 'STUDENT'
                       ? 'bg-brand-500 text-white shadow-md'
                       : 'bg-[#071325] text-slate-400 border border-slate-700'
@@ -88,7 +88,7 @@ export const RegisterPage: React.FC = () => {
                 >
                   Student Account
                 </button>
-                <button
+                {/* <button
                   type="button"
                   onClick={() => setRole('TEACHER')}
                   className={`py-2.5 rounded-xl text-xs font-black transition ${
@@ -98,7 +98,7 @@ export const RegisterPage: React.FC = () => {
                   }`}
                 >
                   Teacher Account
-                </button>
+                </button> */}
               </div>
             </div>
 
