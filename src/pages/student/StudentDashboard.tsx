@@ -42,7 +42,7 @@ export const StudentDashboard: React.FC = () => {
               S
             </div>
             <div>
-              <h2 className="text-sm font-black tracking-tight">MASTERMIND AIDITIT Student Portal</h2>
+              <h2 className="text-sm font-black tracking-tight">MASTERMIND AIDIT Student Portal</h2>
               <span className="text-[10px] text-brand-400 font-bold uppercase tracking-wider">Learner Dashboard</span>
             </div>
           </Link>

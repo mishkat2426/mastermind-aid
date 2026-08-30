@@ -211,7 +211,7 @@ export const TeacherDashboard: React.FC = () => {
               T
             </div>
             <div>
-              <h2 className="text-sm font-black tracking-tight">MASTERMIND AIDITIT Instructor CMS</h2>
+              <h2 className="text-sm font-black tracking-tight">MASTERMIND AIDIT Instructor CMS</h2>
               <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Teacher Portal</span>
             </div>
           </Link>

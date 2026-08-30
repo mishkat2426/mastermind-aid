@@ -21,16 +21,16 @@ export const SeoContentSection: React.FC = () => {
           <div className="space-y-6">
             <div className="space-y-2">
               <span className="text-xs font-extrabold uppercase tracking-wider text-brand-600 bg-brand-50 px-3.5 py-1 rounded-full">
-                About Mastermind AidITIT Platform
+                About Mastermind AidIT Platform
               </span>
               <h2 className="text-3xl sm:text-4xl font-black text-[#0A192F] leading-tight">
-                Best Online Course in Bangladesh – Learn Smart with Mastermind AidITIT
+                Best Online Course in Bangladesh – Learn Smart with Mastermind AidIT
               </h2>
             </div>
 
             <div className="prose prose-slate text-xs sm:text-sm text-slate-600 space-y-4 leading-relaxed font-normal">
               <p>
-                <strong>Mastermind AidITIT (মাস্টারমাইন্ড এইডআইটিআইটি)</strong> is Bangladesh's premier e-learning platform committed to delivering top-tier online education in <strong>WordPress Plugin Development, Full-Stack Web Development, Digital Marketing, Meta Ads, SEO, and Freelancing</strong>.
+                <strong>Mastermind AidIT (মাস্টারমাইন্ড এইডআইটি)</strong> is Bangladesh's premier e-learning platform committed to delivering top-tier online education in <strong>WordPress Plugin Development, Full-Stack Web Development, Digital Marketing, Meta Ads, SEO, and Freelancing</strong>.
               </p>
               
               <p>
@@ -38,7 +38,7 @@ export const SeoContentSection: React.FC = () => {
               </p>
 
               <p>
-                Unlike generic online tutorials, every course on Mastermind AidITIT is structured around <strong>practical projects</strong>. Students gain access to lifetime HD video lessons, downloadable source code, private mentor support groups, and career guidance for Fiverr and Upwork.
+                Unlike generic online tutorials, every course on Mastermind AidIT is structured around <strong>practical projects</strong>. Students gain access to lifetime HD video lessons, downloadable source code, private mentor support groups, and career guidance for Fiverr and Upwork.
               </p>
             </div>
 

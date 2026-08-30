@@ -371,7 +371,7 @@ export const AdminDashboard: React.FC = () => {
               A
             </div>
             <div>
-              <h2 className="text-sm font-black tracking-tight">MASTERMIND AIDITIT Admin</h2>
+              <h2 className="text-sm font-black tracking-tight">MASTERMIND AIDIT Admin</h2>
               <span className="text-[10px] text-purple-400 font-bold uppercase tracking-wider">Super CMS Portal</span>
             </div>
           </Link>
@@ -877,7 +877,7 @@ export const AdminDashboard: React.FC = () => {
                 <input
                   type="email"
                   required
-                  placeholder="admin@mastermindaiditit.com"
+                  placeholder="admin@mastermindaidit.com"
                   value={newAdminEmail}
                   onChange={(e) => setNewAdminEmail(e.target.value)}
                   className="px-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-white"

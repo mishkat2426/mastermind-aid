@@ -56,7 +56,7 @@ export const StudentProjectsGallery: React.FC = () => {
             Student Work Showcase
           </span>
           <h2 className="text-3xl sm:text-5xl font-black text-[#0A192F]">
-            Real Projects Built by Mastermind AidITIT Graduates
+            Real Projects Built by Mastermind AidIT Graduates
           </h2>
           <p className="text-slate-600 text-sm sm:text-base">
             Explore live portfolio projects created by students currently working on Fiverr, Upwork & local agencies.

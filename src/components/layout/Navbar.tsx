@@ -68,10 +68,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
             <div className="flex flex-col">
               <span className="text-base sm:text-xl font-black tracking-tight leading-none">
-                Mastermind <span className="text-brand-400">AidlT</span>
+                Mastermind <span className="text-brand-400">AidIT</span>
               </span>
               <span className="hidden sm:block text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
-                মাস্টারমাইন্ড এইডআইটিআইটি • 2026
+                মাস্টারমাইন্ড এইডআইটি • 2026
               </span>
             </div>
           </Link>

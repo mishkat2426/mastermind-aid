@@ -13,7 +13,7 @@ export const InteractiveCodePlayground: React.FC<InteractiveCodePlaygroundProps>
   onClose,
 }) => {
   const defaultCode = `<div style="background: linear-gradient(135deg, #0D5FF9, #0F2B5A); padding: 30px; border-radius: 20px; text-align: center; color: white; font-family: sans-serif;">
-  <h1 style="font-size: 26px; margin-bottom: 10px;">🚀 Welcome to MASTERMIND AIDITIT Live Sandbox!</h1>
+  <h1 style="font-size: 26px; margin-bottom: 10px;">🚀 Welcome to MASTERMIND AIDIT Live Sandbox!</h1>
   <p style="font-size: 14px; opacity: 0.9;">Edit this HTML code and click "Run Code" to see live results instantly!</p>
   <button style="background: #10B981; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; margin-top: 15px; cursor: pointer;">
     Enroll Free Today ✓
@@ -145,7 +145,7 @@ export const InteractiveCodePlayground: React.FC<InteractiveCodePlaygroundProps>
           {/* Footer Bar */}
           <div className="p-4 px-6 bg-[#071325] border-t border-slate-800 flex items-center justify-between text-xs text-slate-400 font-medium">
             <span>
-              Powered by MASTERMIND AIDITIT Virtual Sandbox • Used in Web Development & WordPress Plugin
+              Powered by MASTERMIND AIDIT Virtual Sandbox • Used in Web Development & WordPress Plugin
               Masterclasses
             </span>
             <button

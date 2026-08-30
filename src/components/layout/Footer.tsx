@@ -69,12 +69,12 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
                 <BrainCircuit className="w-6 h-6" />
               </div>
               <span className="text-base sm:text-xl font-black tracking-tight leading-none">
-                Mastermind <span className="text-brand-400">AidlT</span>
+                Mastermind <span className="text-brand-400">AidIT</span>
               </span>
             </div>
 
             <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
-              Mastermind AidITIT is Bangladesh's premier skill development platform, delivering high-impact online courses in Web Development, WordPress, Digital Marketing, SEO, and Freelancing.
+              Mastermind AidIT is Bangladesh's premier skill development platform, delivering high-impact online courses in Web Development, WordPress, Digital Marketing, SEO, and Freelancing.
             </p>
 
             <div className="pt-2 flex items-center gap-3">
@@ -133,7 +133,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-brand-400 shrink-0" />
-                <a href="mailto:support@mastermindaiditit.com" className="hover:text-white transition">support@mastermindaiditit.com</a>
+                <a href="mailto:support@mastermindaidit.com" className="hover:text-white transition">support@mastermindaidit.com</a>
               </li>
             </ul>
           </div>
@@ -143,7 +143,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
         {/* Bottom Copyright Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <div>
-            © 2026 <strong className="text-white">MASTERMIND AIDITIT</strong>. All Rights Reserved. Built with Excellence.
+            © 2026 <strong className="text-white">MASTERMIND AIDIT</strong>. All Rights Reserved. Built with Excellence.
           </div>
           <div className="flex items-center gap-6">
             <a href="#" className="hover:text-white transition">Privacy Policy</a>

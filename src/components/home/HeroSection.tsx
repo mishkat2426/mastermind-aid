@@ -57,7 +57,7 @@ HeroSection: React.FC<HeroSectionProps> = ({
   // Format real privacy-friendly tickers from database
   const tickerItems = realEnrollments.length > 0
     ? realEnrollments.slice(0, 5).map((e) => `⚡ A student recently enrolled in ${e.courseTitle}`)
-    : ['⚡ Mastermind AidITIT • Premier AI & IT Skill Development Platform 2026'];
+    : ['⚡ Mastermind AidIT • Premier AI & IT Skill Development Platform 2026'];
 
   const heroContent = DBService.getWebsiteContent('homepage_hero');
   const promoVideoContent = DBService.getWebsiteContent('homepage_promo_video');

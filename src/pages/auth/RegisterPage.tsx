@@ -62,7 +62,7 @@ export const RegisterPage: React.FC = () => {
         <div>
           <h2 className="text-2xl font-black">Create Your Account</h2>
           <p className="text-xs text-slate-400 font-medium">
-            Join 17,000+ Bangladeshi students & instructors on MASTERMIND AIDITIT.
+            Join 17,000+ Bangladeshi students & instructors on MASTERMIND AIDIT.
           </p>
         </div>
       </div>
