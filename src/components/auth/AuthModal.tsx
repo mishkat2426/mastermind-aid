@@ -22,7 +22,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     if (tab === 'login') {
       setSuccessMsg('Successfully signed in! Redirecting to student dashboard...');
     } else {
-      setSuccessMsg('Account created successfully! Welcome to MASTERMIND AIDT.');
+      setSuccessMsg('Account created successfully! Welcome to MASTERMIND AIDITIT.');
     }
     setTimeout(() => {
       setSuccessMsg('');

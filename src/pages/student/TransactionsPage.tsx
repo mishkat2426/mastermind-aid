@@ -83,7 +83,7 @@ export const TransactionsPage: React.FC = () => {
 
           <div className="pt-2 border-t border-slate-800">
             <Link to="/" className="text-xs text-brand-400 hover:underline font-bold">
-              ← Return to Mastermind AidIT Homepage
+              ← Return to Mastermind AidITIT Homepage
             </Link>
           </div>
         </div>

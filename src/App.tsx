@@ -26,7 +26,7 @@ export function App() {
   // Cart State (Persisted in localStorage)
   const [cart, setCart] = useState<Course[]>(() => {
     try {
-      const saved = localStorage.getItem('mastermindaid_cart');
+      const saved = localStorage.getItem('mastermindaidit_cart');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -41,7 +41,7 @@ export function App() {
   // Save Cart to LocalStorage
   useEffect(() => {
     try {
-      localStorage.setItem('mastermindaid_cart', JSON.stringify(cart));
+      localStorage.setItem('mastermindaidit_cart', JSON.stringify(cart));
     } catch (e) {
       console.error('Failed to save cart:', e);
     }

@@ -208,7 +208,7 @@ export const CoursesPage: React.FC<CoursesPageProps> = ({ onAddToCart, cartItemI
             </div>
             <h3 className="text-xl font-bold text-[#0F2B5A]">Nothing here yet.</h3>
             <p className="text-slate-500 text-xs sm:text-sm max-w-md mx-auto">
-              MASTERMIND AIDT couldn't find any course matching your selected filters or search query.
+              MASTERMIND AIDITIT couldn't find any course matching your selected filters or search query.
             </p>
             <button
               onClick={handleResetFilters}

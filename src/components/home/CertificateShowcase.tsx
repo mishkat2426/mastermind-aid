@@ -40,7 +40,7 @@ export const CertificateShowcase: React.FC<CertificateShowcaseProps> = ({ isOpen
                 <div className="flex items-center gap-1.5 text-xs text-amber-400 font-extrabold uppercase tracking-wider">
                   <Sparkles className="w-3.5 h-3.5" /> Verified E-Certificate Preview
                 </div>
-                <h3 className="text-xl sm:text-2xl font-black">MASTERMIND AIDT Certificate Generator</h3>
+                <h3 className="text-xl sm:text-2xl font-black">MASTERMIND AIDITIT Certificate Generator</h3>
               </div>
             </div>
 
@@ -144,7 +144,7 @@ export const CertificateShowcase: React.FC<CertificateShowcaseProps> = ({ isOpen
                   </div>
 
                   <div className="text-center">
-                    <div className="font-serif italic font-bold text-slate-800 text-sm">MASTERMIND AIDT Board</div>
+                    <div className="font-serif italic font-bold text-slate-800 text-sm">MASTERMIND AIDITIT Board</div>
                     <div className="text-[10px] text-slate-400 border-t border-slate-300 pt-1 font-sans">Academic Director</div>
                   </div>
                 </div>

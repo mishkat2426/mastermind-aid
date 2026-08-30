@@ -72,7 +72,7 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
               </h1>
               <p className="text-xs text-slate-400 font-medium tracking-widest uppercase flex items-center justify-center gap-1">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                মাস্টারমাইন্ড এইডটি • Elevating Skills in Bangladesh
+                মাস্টারমাইন্ড এইডআইটিআইটি • Elevating Skills in Bangladesh
               </p>
             </motion.div>
 

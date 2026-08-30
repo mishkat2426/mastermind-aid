@@ -15,7 +15,7 @@ export const TestimonialSection: React.FC = () => {
               Real Student Success Stories
             </span>
             <h2 className="text-3xl sm:text-4xl font-black text-[#0A192F]">
-              What Our Students Say About Mastermind AidlT
+              What Our Students Say About Mastermind AidITIT
             </h2>
             <p className="text-slate-500 text-xs sm:text-sm font-medium">
               Verified feedback from students learning Web Development, Digital Marketing & Freelancing.

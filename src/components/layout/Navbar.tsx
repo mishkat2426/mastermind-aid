@@ -71,7 +71,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 Mastermind <span className="text-brand-400">AidlT</span>
               </span>
               <span className="hidden sm:block text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
-                মাস্টারমাইন্ড এইডটি • 2026
+                মাস্টারমাইন্ড এইডআইটিআইটি • 2026
               </span>
             </div>
           </Link>
