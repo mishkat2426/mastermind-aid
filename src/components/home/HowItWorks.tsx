@@ -38,7 +38,7 @@ export const HowItWorks: React.FC = () => {
               Our Process
             </span>
             <h2 className="text-3xl sm:text-4xl font-black text-[#0F2B5A]">
-              How Does Course Kori Work?
+              How does it work?
             </h2>
             <p className="text-slate-500 text-sm">
               Simple 3-step pathway to mastering high-demand skills in Bangladesh.
