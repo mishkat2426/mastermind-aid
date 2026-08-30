@@ -17,7 +17,7 @@ import {
   FileText
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AIOrb } from '../../components/AIOrb';
+import { AIOrb } from '../../components/ai/AIOrb';
 
 export const StudentDashboard: React.FC = () => {
   const { currentUser, logout } = useAuth();

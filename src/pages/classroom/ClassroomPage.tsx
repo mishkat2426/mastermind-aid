@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { DBService } from '../../services/db';
 import { useAuth } from '../../context/AuthContext';
-import { AIOrb } from '../../components/AIOrb';
+import { AIOrb } from '../../components/ai/AIOrb';
 
 export const ClassroomPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();

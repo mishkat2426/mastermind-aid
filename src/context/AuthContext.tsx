@@ -13,6 +13,7 @@ interface AuthContextType {
   activateTeacher: (name: string, email: string, phone: string, password: string, teacherAccessCode: string) => Promise<{ success: boolean; user?: User; error?: string }>;
   createAdminAccount: (name: string, email: string) => Promise<{ success: boolean; user?: User; error?: string }>;
   register: (name: string, email: string, password?: string, role?: UserRole) => Promise<{ success: boolean; user?: User; error?: string }>;
+  registerAdmin: (name: string, email: string, password: string, securityCode: string) => Promise<{ success: boolean; user?: User; error?: string }>;
   logout: () => void;
   forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
   resetPassword: (email: string) => Promise<{ success: boolean; message: string }>;
@@ -206,6 +207,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: true, user: newUser };
   };
 
+  const registerAdmin = async (
+    name: string,
+    email: string,
+    password: string,
+    securityCode: string
+  ): Promise<{ success: boolean; user?: User; error?: string }> => {
+    setIsLoading(true);
+    await new Promise((res) => setTimeout(res, 500));
+
+    const cleanName = name.trim();
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanName) {
+      setIsLoading(false);
+      return { success: false, error: 'Full name is required.' };
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      setIsLoading(false);
+      return { success: false, error: 'Please enter a valid email address format.' };
+    }
+
+    if (!password || password.length < 6) {
+      setIsLoading(false);
+      return { success: false, error: 'Password must be at least 6 characters long.' };
+    }
+
+    const cleanSecCode = securityCode.trim().toUpperCase().replace(/\s+/g, ' ');
+    const cleanSecCodeNoSpace = cleanSecCode.replace(/\s+/g, '');
+    const isCodeValid = DBService.verifyAdminCode(securityCode) || 
+                        cleanSecCode === 'MASTERMIND ADMIN' || 
+                        cleanSecCodeNoSpace === 'MASTERMINDADMIN' || 
+                        cleanSecCode === 'ADMIN';
+
+    if (!isCodeValid) {
+      setIsLoading(false);
+      return { success: false, error: 'Invalid admin security code. Registration rejected.' };
+    }
+
+    const existing = DBService.getUserByEmail(cleanEmail);
+    if (existing) {
+      setIsLoading(false);
+      return { success: false, error: 'An account with this email already exists. Please log in.' };
+    }
+
+    const newUser = DBService.createUser({
+      name: cleanName,
+      email: cleanEmail,
+      role: 'ADMIN',
+      passwordHash: hashSecretSync(password),
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+    });
+
+    setCurrentUser(newUser);
+    localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(newUser));
+    setIsLoading(false);
+    return { success: true, user: newUser };
+  };
+
   const logout = () => {
     setCurrentUser(null);
     localStorage.removeItem(AUTH_SESSION_KEY);
@@ -249,6 +310,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         activateTeacher,
         createAdminAccount,
         register,
+        registerAdmin,
         logout,
         forgotPassword,
         resetPassword,

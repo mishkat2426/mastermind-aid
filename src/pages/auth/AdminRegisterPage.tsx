@@ -1,27 +1,26 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, Lock, Mail, ArrowRight, BrainCircuit, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
+import { ArrowRight, BrainCircuit, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { UserRole } from '../../types/platform';
 import { AIOrb } from '../../components/ai/AIOrb';
 
-export const RegisterPage: React.FC = () => {
+export const AdminRegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const { register, isLoading } = useAuth();
+  const { registerAdmin, isLoading } = useAuth();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [securityCode, setSecurityCode] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('STUDENT');
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
-    if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
-      setErrorMsg('Please fill in all required registration fields.');
+    if (!name.trim() || !email.trim() || !securityCode.trim() || !password.trim() || !confirmPassword.trim()) {
+      setErrorMsg('Please fill in all registration fields.');
       return;
     }
 
@@ -35,13 +34,11 @@ export const RegisterPage: React.FC = () => {
       return;
     }
 
-    const result = await register(name, email, password, role);
+    const result = await registerAdmin(name, email, password, securityCode);
     if (result.success && result.user) {
-      if (role === 'ADMIN') navigate('/admin/dashboard');
-      else if (role === 'TEACHER') navigate('/teacher/dashboard');
-      else navigate('/dashboard');
+      navigate('/admin/dashboard');
     } else {
-      setErrorMsg(result.error || 'Registration failed. Please try again.');
+      setErrorMsg(result.error || 'Admin registration failed. Please check your credentials.');
     }
   };
 
@@ -55,14 +52,14 @@ export const RegisterPage: React.FC = () => {
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center text-white shadow-xl shadow-brand-500/30">
             <BrainCircuit className="w-7 h-7 stroke-[2.5]" />
           </div>
-         <span className="text-base sm:text-xl font-black tracking-tight leading-none">
-                Mastermind <span className="text-brand-400">AidlT</span>
-              </span>
+          <span className="text-base sm:text-xl font-black tracking-tight leading-none">
+            Mastermind <span className="text-brand-400">AidlT</span>
+          </span>
         </Link>
         <div>
-          <h2 className="text-2xl font-black">Create Your Account</h2>
+          <h2 className="text-2xl font-black">Admin Registration</h2>
           <p className="text-xs text-slate-400 font-medium">
-            Join 17,000+ Bangladeshi students & instructors on MASTERMIND AIDT.
+            Create a new administrator account using your system security code.
           </p>
         </div>
       </div>
@@ -72,36 +69,6 @@ export const RegisterPage: React.FC = () => {
           
           <form onSubmit={handleRegisterSubmit} className="space-y-4">
             
-            <div>
-              {/* <label className="block text-xs font-bold text-slate-300 mb-1">
-                Select Account Role
-              </label> */}
-              <div className="flex justify-center  gap-2">
-                <button
-                  type="button"
-                  onClick={() => setRole('STUDENT')}
-                  className={`py-2.5 px-2 rounded-xl text-xs font-black transition ${
-                    role === 'STUDENT'
-                      ? 'bg-brand-500 text-white shadow-md'
-                      : 'bg-[#071325] text-slate-400 border border-slate-700'
-                  }`}
-                >
-                  Student Account
-                </button>
-                {/* <button
-                  type="button"
-                  onClick={() => setRole('TEACHER')}
-                  className={`py-2.5 rounded-xl text-xs font-black transition ${
-                    role === 'TEACHER'
-                      ? 'bg-emerald-600 text-white shadow-md'
-                      : 'bg-[#071325] text-slate-400 border border-slate-700'
-                  }`}
-                >
-                  Teacher Account
-                </button> */}
-              </div>
-            </div>
-
             <div>
               <label className="block text-xs font-bold text-slate-300 mb-1">
                 Full Name
@@ -123,9 +90,23 @@ export const RegisterPage: React.FC = () => {
               <input
                 type="email"
                 required
-                placeholder="tanvir@example.com"
+                placeholder="admin@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 bg-[#071325] border border-slate-700 rounded-xl text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-300 mb-1">
+                Admin Security Code
+              </label>
+              <input
+                type="password"
+                required
+                placeholder="Enter system security code"
+                value={securityCode}
+                onChange={(e) => setSecurityCode(e.target.value)}
                 className="w-full px-4 py-3 bg-[#071325] border border-slate-700 rounded-xl text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
@@ -173,11 +154,11 @@ export const RegisterPage: React.FC = () => {
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <AIOrb state="thinking" size={20} />
-                  <span>Creating Account...</span>
+                  <span>Registering Admin...</span>
                 </div>
               ) : (
                 <>
-                  <span>Create {role} Account</span>
+                  <span>Create Admin Account</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -198,3 +179,4 @@ export const RegisterPage: React.FC = () => {
     </div>
   );
 };
+export default AdminRegisterPage;

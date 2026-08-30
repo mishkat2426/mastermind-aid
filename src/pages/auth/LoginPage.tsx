@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { UserRole } from '../../types/platform';
-import { AIOrb } from '../../components/AIOrb';
+import { AIOrb } from '../../components/ai/AIOrb';
 
 interface LoginPageProps {
   presetRole?: UserRole;
@@ -479,7 +479,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ presetRole }) => {
               </button>
 
               <div className="pt-3 border-t border-slate-800/80 text-center">
-                <Link to="/register" className="text-xs text-slate-400 hover:text-purple-300 font-extrabold hover:underline">
+                <Link to="/admin/register" className="text-xs text-slate-400 hover:text-purple-300 font-extrabold hover:underline">
                   Need a new account? Register / Sign Up Here →
                 </Link>
               </div>

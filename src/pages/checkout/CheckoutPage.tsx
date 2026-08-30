@@ -5,7 +5,7 @@ import { ShieldCheck, CheckCircle2, ArrowRight, ArrowLeft, Smartphone, CreditCar
 import { DBService } from '../../services/db';
 import { useAuth } from '../../context/AuthContext';
 import { PaymentMethod } from '../../types/platform';
-import { AIOrb } from '../../components/AIOrb';
+import { AIOrb } from '../../components/ai/AIOrb';
 
 export const CheckoutPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();

@@ -1,37 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 // Layout & Global Components
-import { Navbar } from './components/Navbar';
-import { Preloader } from './components/Preloader';
-import { ProtectedRoute } from './components/ProtectedRoute';
+import { Navbar } from './components/layout/Navbar';
+import { Preloader } from './components/layout/Preloader';
 
-// Public Pages
-import { HomePage } from './pages/HomePage';
-import { CoursesPage } from './pages/courses/CoursesPage';
-import { CourseDetailPage } from './pages/courses/CourseDetailPage';
-import { CheckoutPage } from './pages/checkout/CheckoutPage';
-import { ClassroomPage } from './pages/classroom/ClassroomPage';
-
-// Auth Pages
-import { LoginPage } from './pages/auth/LoginPage';
-import { RegisterPage } from './pages/auth/RegisterPage';
-import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
-import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
-
-// Transactions Page
-import { TransactionsPage } from './pages/transactions/TransactionsPage';
-
-// Dashboards
-import { AdminDashboard } from './pages/admin/AdminDashboard';
-import { TeacherDashboard } from './pages/teacher/TeacherDashboard';
-import { StudentDashboard } from './pages/student/StudentDashboard';
+// Routing configuration
+import { AppRoutes } from './routes/AppRoutes';
 
 // Modals & Floating Tools
-import { SearchModal } from './components/SearchModal';
-import { CartDrawer } from './components/CartDrawer';
-import { PathFinderModal } from './components/PathFinderModal';
-import { FloatingAssistant } from './components/FloatingAssistant';
+import { SearchModal } from './components/shared/SearchModal';
+import { CartDrawer } from './components/cart/CartDrawer';
+import { PathFinderModal } from './components/shared/PathFinderModal';
+import { FloatingAssistant } from './components/ai/FloatingAssistant';
 
 import { Course } from './types/platform';
 import { DBService } from './services/db';
@@ -114,119 +95,11 @@ export function App() {
 
       {/* Application Route Engine */}
       <div className="flex-1">
-        <Routes>
-          {/* Public Marketing Homepage */}
-          <Route
-            path="/"
-            element={
-              <HomePage
-                onOpenPathFinder={() => setIsPathFinderOpen(true)}
-                onAddToCart={handleAddToCart}
-                cartItemIds={cart.map((c) => c.id)}
-              />
-            }
-          />
-
-          {/* Dedicated Course Catalog Route */}
-          <Route
-            path="/courses"
-            element={
-              <CoursesPage
-                onAddToCart={handleAddToCart}
-                cartItemIds={cart.map((c) => c.id)}
-              />
-            }
-          />
-
-          {/* Dedicated Course Details Route */}
-          <Route
-            path="/courses/:courseId"
-            element={
-              <CourseDetailPage
-                onAddToCart={handleAddToCart}
-                cartItemIds={cart.map((c) => c.id)}
-              />
-            }
-          />
-
-          {/* Checkout & Payment Gateway Route */}
-          <Route path="/checkout/:courseId" element={<CheckoutPage />} />
-
-          {/* Protected Student Learning Classroom Route */}
-          <Route
-            path="/courses/:courseId/learn"
-            element={
-              <ProtectedRoute allowedRoles={['STUDENT', 'TEACHER', 'ADMIN']}>
-                <ClassroomPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Authentication Routes */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/admin/login" element={<LoginPage presetRole="ADMIN" />} />
-          <Route path="/teacher/login" element={<LoginPage presetRole="TEACHER" />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-
-          {/* Transactions Page (Protected) */}
-          <Route
-            path="/transactions"
-            element={
-              <ProtectedRoute allowedRoles={['STUDENT', 'ADMIN']}>
-                <TransactionsPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Protected Dashboards */}
-          <Route
-            path="/admin/*"
-            element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/teacher/*"
-            element={
-              <ProtectedRoute allowedRoles={['TEACHER', 'ADMIN']}>
-                <TeacherDashboard />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/dashboard/*"
-            element={
-              <ProtectedRoute allowedRoles={['STUDENT', 'TEACHER', 'ADMIN']}>
-                <StudentDashboard />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Fallback 404 Route */}
-          <Route
-            path="*"
-            element={
-              <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-center space-y-4">
-                <div>
-                  <h2 className="text-3xl font-black text-[#0A192F]">404 - Page Not Found</h2>
-                  <p className="text-xs text-slate-500 mt-1">The requested route does not exist.</p>
-                  <button
-                    onClick={() => navigate('/')}
-                    className="mt-4 px-6 py-2.5 bg-brand-500 text-white rounded-xl text-xs font-bold shadow-md hover:bg-brand-600 transition"
-                  >
-                    Return to Homepage
-                  </button>
-                </div>
-              </div>
-            }
-          />
-        </Routes>
+        <AppRoutes
+          onAddToCart={handleAddToCart}
+          cartItemIds={cart.map((c) => c.id)}
+          onOpenPathFinder={() => setIsPathFinderOpen(true)}
+        />
       </div>
 
       {/* Global Modals & Overlay Components */}
