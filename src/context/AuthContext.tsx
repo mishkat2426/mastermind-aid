@@ -1,6 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserRole } from '../types/platform';
 import { DBService, hashSecretSync } from '../services/db';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  sendPasswordResetEmail,
+  updateProfile as firebaseUpdateProfile
+} from 'firebase/auth';
+import { auth } from '../Firebase/firebase';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -28,26 +36,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Restore session from localStorage
+  // Restore session from Firebase Auth and sync with DBService
   useEffect(() => {
-    try {
-      const savedUserRaw = localStorage.getItem(AUTH_SESSION_KEY);
-      if (savedUserRaw) {
-        const savedUser: User = JSON.parse(savedUserRaw);
-        const freshUser = DBService.getUserById(savedUser.id);
-        if (freshUser) {
-          setCurrentUser(freshUser);
-        } else {
-          setCurrentUser(null);
+    const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
+      if (firebaseUser && firebaseUser.email) {
+        let name = firebaseUser.displayName || 'User';
+        let role: UserRole = 'STUDENT';
+        try {
+          if (firebaseUser.displayName && firebaseUser.displayName.startsWith('{')) {
+            const parsed = JSON.parse(firebaseUser.displayName);
+            if (parsed.name) name = parsed.name;
+            if (parsed.role) role = parsed.role;
+          }
+        } catch (e) {
+          // Keep defaults
         }
+
+        let localUser = DBService.getUserByEmail(firebaseUser.email);
+        if (!localUser) {
+          localUser = DBService.createUser({
+            name,
+            email: firebaseUser.email,
+            role,
+            avatar: firebaseUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+          });
+        }
+
+        setCurrentUser(localUser);
       } else {
         setCurrentUser(null);
       }
-    } catch (e) {
-      setCurrentUser(null);
-    } finally {
       setIsLoading(false);
-    }
+    });
+    return () => unsubscribe();
   }, []);
 
   const login = async (
@@ -56,42 +77,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     requestedRole?: UserRole
   ): Promise<{ success: boolean; user?: User; error?: string }> => {
     setIsLoading(true);
-    await new Promise((res) => setTimeout(res, 400));
-
     const cleanEmail = email.trim().toLowerCase();
-    const user = DBService.getUserByEmail(cleanEmail);
 
-    if (!user) {
+    if (!password) {
       setIsLoading(false);
-      return {
-        success: false,
-        error: 'No account found with this email. Please click "Sign Up" to create an account.',
-      };
+      return { success: false, error: 'Password is required.' };
     }
 
-    if (user.status === 'SUSPENDED') {
-      setIsLoading(false);
-      return { success: false, error: 'Account suspended. Please contact platform support.' };
-    }
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, password);
+      const firebaseUser = userCredential.user;
 
-    // Secure password verification
-    if (user.passwordHash && password) {
-      const inputHash = hashSecretSync(password);
-      if (inputHash !== user.passwordHash) {
-        setIsLoading(false);
-        return { success: false, error: 'Incorrect password. Please try again.' };
+      let name = firebaseUser.displayName || 'User';
+      let role: UserRole = requestedRole || 'STUDENT';
+      try {
+        if (firebaseUser.displayName && firebaseUser.displayName.startsWith('{')) {
+          const parsed = JSON.parse(firebaseUser.displayName);
+          if (parsed.name) name = parsed.name;
+          if (parsed.role) role = parsed.role;
+        }
+      } catch (e) {}
+
+      let localUser = DBService.getUserByEmail(cleanEmail);
+      if (!localUser) {
+        localUser = DBService.createUser({
+          name,
+          email: cleanEmail,
+          role,
+          avatar: firebaseUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+        });
       }
-    }
 
-    // Role verification
-    if (requestedRole === 'STUDENT' && user.role !== 'STUDENT') {
-      // Allow multi-role preview if teacher or admin tests student dashboard
-    }
+      if (localUser.status === 'SUSPENDED') {
+        await signOut(auth);
+        setIsLoading(false);
+        return { success: false, error: 'Account suspended. Please contact platform support.' };
+      }
 
-    setCurrentUser(user);
-    localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(user));
-    setIsLoading(false);
-    return { success: true, user };
+      setCurrentUser(localUser);
+      setIsLoading(false);
+      return { success: true, user: localUser };
+    } catch (e: any) {
+      setIsLoading(false);
+      let errorMsg = 'An error occurred during sign in. Please try again.';
+      if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
+        errorMsg = 'Incorrect email or password, or the account does not exist. Please sign up or register first.';
+      } else if (e.code === 'auth/wrong-password') {
+        errorMsg = 'Incorrect password. Please try again.';
+      } else if (e.message) {
+        errorMsg = e.message;
+      }
+      return { success: false, error: errorMsg };
+    }
   };
 
   const loginTeacher = async (
@@ -100,15 +137,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     teacherAccessCode?: string
   ): Promise<{ success: boolean; user?: User; error?: string }> => {
     setIsLoading(true);
-    await new Promise((res) => setTimeout(res, 500));
+    const cleanEmail = email.trim().toLowerCase();
 
-    const result = DBService.authenticateTeacher(email, password, teacherAccessCode);
-    if (result.success && result.user) {
-      setCurrentUser(result.user);
-      localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(result.user));
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, password);
+      const firebaseUser = userCredential.user;
+
+      let name = firebaseUser.displayName || 'Teacher';
+      let role: UserRole = 'TEACHER';
+      try {
+        if (firebaseUser.displayName && firebaseUser.displayName.startsWith('{')) {
+          const parsed = JSON.parse(firebaseUser.displayName);
+          if (parsed.name) name = parsed.name;
+          if (parsed.role) role = parsed.role;
+        }
+      } catch (e) {}
+
+      if (role !== 'TEACHER' && role !== 'ADMIN') {
+        await signOut(auth);
+        setIsLoading(false);
+        return { success: false, error: 'Unauthorized role. You are not a Teacher.' };
+      }
+
+      const result = DBService.authenticateTeacher(cleanEmail, password, teacherAccessCode);
+      if (!result.success) {
+        await signOut(auth);
+        setIsLoading(false);
+        return result;
+      }
+
+      if (result.user) {
+        setCurrentUser(result.user);
+      }
+      setIsLoading(false);
+      return result;
+    } catch (e: any) {
+      setIsLoading(false);
+      let errorMsg = 'An error occurred during teacher sign in. Please try again.';
+      if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
+        errorMsg = 'Incorrect email or password, or the account does not exist. Please sign up or register first.';
+      } else if (e.code === 'auth/wrong-password') {
+        errorMsg = 'Incorrect password. Please try again.';
+      } else if (e.message) {
+        errorMsg = e.message;
+      }
+      return { success: false, error: errorMsg };
     }
-    setIsLoading(false);
-    return result;
   };
 
   const loginAdmin = async (
@@ -117,15 +191,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     adminSecurityCode: string
   ): Promise<{ success: boolean; user?: User; error?: string }> => {
     setIsLoading(true);
-    await new Promise((res) => setTimeout(res, 500));
+    const cleanEmail = email.trim().toLowerCase();
 
-    const result = DBService.authenticateAdmin(email, password, adminSecurityCode);
-    if (result.success && result.user) {
-      setCurrentUser(result.user);
-      localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(result.user));
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, password);
+      const firebaseUser = userCredential.user;
+
+      let name = firebaseUser.displayName || 'Admin';
+      let role: UserRole = 'ADMIN';
+      try {
+        if (firebaseUser.displayName && firebaseUser.displayName.startsWith('{')) {
+          const parsed = JSON.parse(firebaseUser.displayName);
+          if (parsed.name) name = parsed.name;
+          if (parsed.role) role = parsed.role;
+        }
+      } catch (e) {}
+
+      if (role !== 'ADMIN') {
+        await signOut(auth);
+        setIsLoading(false);
+        return { success: false, error: 'Unauthorized role. You are not an Admin.' };
+      }
+
+      const result = DBService.authenticateAdmin(cleanEmail, password, adminSecurityCode);
+      if (!result.success) {
+        await signOut(auth);
+        setIsLoading(false);
+        return result;
+      }
+
+      if (result.user) {
+        setCurrentUser(result.user);
+      }
+      setIsLoading(false);
+      return result;
+    } catch (e: any) {
+      setIsLoading(false);
+      let errorMsg = 'An error occurred during admin sign in. Please try again.';
+      if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
+        errorMsg = 'Incorrect email or password, or the account does not exist. Please sign up or register first.';
+      } else if (e.code === 'auth/wrong-password') {
+        errorMsg = 'Incorrect password. Please try again.';
+      } else if (e.message) {
+        errorMsg = e.message;
+      }
+      return { success: false, error: errorMsg };
     }
-    setIsLoading(false);
-    return result;
   };
 
   const activateTeacher = async (
@@ -136,15 +247,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     teacherAccessCode: string
   ): Promise<{ success: boolean; user?: User; error?: string }> => {
     setIsLoading(true);
-    await new Promise((res) => setTimeout(res, 500));
+    const cleanName = name.trim();
+    const cleanEmail = email.trim().toLowerCase();
 
-    const result = DBService.activateTeacherAccount(name, email, phone, password, teacherAccessCode);
-    if (result.success && result.user) {
-      setCurrentUser(result.user);
-      localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(result.user));
+    if (!DBService.verifyTeacherCode(teacherAccessCode)) {
+      setIsLoading(false);
+      return { success: false, error: 'Invalid teacher access code.' };
     }
-    setIsLoading(false);
-    return result;
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+      const firebaseUser = userCredential.user;
+
+      const avatar = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80';
+      await firebaseUpdateProfile(firebaseUser, {
+        displayName: JSON.stringify({ name: cleanName, role: 'TEACHER' }),
+        photoURL: avatar
+      });
+
+      const result = DBService.activateTeacherAccount(cleanName, cleanEmail, phone, password, teacherAccessCode);
+      if (result.success && result.user) {
+        setCurrentUser(result.user);
+      }
+      setIsLoading(false);
+      return result;
+    } catch (e: any) {
+      setIsLoading(false);
+      let errorMsg = 'An error occurred during teacher activation. Please try again.';
+      if (e.code === 'auth/email-already-in-use') {
+        errorMsg = 'An account with this email already exists. Please log in.';
+      } else if (e.message) {
+        errorMsg = e.message;
+      }
+      return { success: false, error: errorMsg };
+    }
   };
 
   const createAdminAccount = async (
@@ -152,8 +288,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     email: string
   ): Promise<{ success: boolean; user?: User; error?: string }> => {
     setIsLoading(true);
-    await new Promise((res) => setTimeout(res, 500));
-
     const result = DBService.createAdminAccount(name, email, currentUser?.name || 'Admin');
     setIsLoading(false);
     return result;
@@ -166,8 +300,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     role: UserRole = 'STUDENT'
   ): Promise<{ success: boolean; user?: User; error?: string }> => {
     setIsLoading(true);
-    await new Promise((res) => setTimeout(res, 500));
-
     const cleanName = name.trim();
     const cleanEmail = email.trim().toLowerCase();
 
@@ -187,24 +319,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, error: 'Password must be at least 6 characters long.' };
     }
 
-    const existing = DBService.getUserByEmail(cleanEmail);
-    if (existing) {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+      const firebaseUser = userCredential.user;
+
+      const avatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80';
+      await firebaseUpdateProfile(firebaseUser, {
+        displayName: JSON.stringify({ name: cleanName, role }),
+        photoURL: avatar
+      });
+
+      const newUser = DBService.createUser({
+        name: cleanName,
+        email: cleanEmail,
+        role,
+        avatar,
+        passwordHash: password ? hashSecretSync(password) : undefined,
+      });
+
+      setCurrentUser(newUser);
       setIsLoading(false);
-      return { success: false, error: 'An account with this email already exists. Please log in.' };
+      return { success: true, user: newUser };
+    } catch (e: any) {
+      setIsLoading(false);
+      let errorMsg = 'An error occurred during registration. Please try again.';
+      if (e.code === 'auth/email-already-in-use') {
+        errorMsg = 'An account with this email already exists. Please log in.';
+      } else if (e.message) {
+        errorMsg = e.message;
+      }
+      return { success: false, error: errorMsg };
     }
-
-    const newUser = DBService.createUser({
-      name: cleanName,
-      email: cleanEmail,
-      role,
-      passwordHash: hashSecretSync(password),
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-    });
-
-    setCurrentUser(newUser);
-    localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(newUser));
-    setIsLoading(false);
-    return { success: true, user: newUser };
   };
 
   const registerAdmin = async (
@@ -214,8 +359,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     securityCode: string
   ): Promise<{ success: boolean; user?: User; error?: string }> => {
     setIsLoading(true);
-    await new Promise((res) => setTimeout(res, 500));
-
     const cleanName = name.trim();
     const cleanEmail = email.trim().toLowerCase();
 
@@ -237,9 +380,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const cleanSecCode = securityCode.trim().toUpperCase().replace(/\s+/g, ' ');
     const cleanSecCodeNoSpace = cleanSecCode.replace(/\s+/g, '');
-    const isCodeValid = DBService.verifyAdminCode(securityCode) || 
-                        cleanSecCode === 'MASTERMIND ADMIN' || 
-                        cleanSecCodeNoSpace === 'MASTERMINDADMIN' || 
+    const isCodeValid = DBService.verifyAdminCode(securityCode) ||
+                        cleanSecCode === 'MASTERMIND ADMIN' ||
+                        cleanSecCodeNoSpace === 'MASTERMINDADMIN' ||
                         cleanSecCode === 'ADMIN';
 
     if (!isCodeValid) {
@@ -247,37 +390,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, error: 'Invalid admin security code. Registration rejected.' };
     }
 
-    const existing = DBService.getUserByEmail(cleanEmail);
-    if (existing) {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+      const firebaseUser = userCredential.user;
+
+      const avatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80';
+      await firebaseUpdateProfile(firebaseUser, {
+        displayName: JSON.stringify({ name: cleanName, role: 'ADMIN' }),
+        photoURL: avatar
+      });
+
+      const newUser = DBService.createUser({
+        name: cleanName,
+        email: cleanEmail,
+        role: 'ADMIN',
+        avatar,
+        passwordHash: hashSecretSync(password),
+      });
+
+      setCurrentUser(newUser);
       setIsLoading(false);
-      return { success: false, error: 'An account with this email already exists. Please log in.' };
+      return { success: true, user: newUser };
+    } catch (e: any) {
+      setIsLoading(false);
+      let errorMsg = 'An error occurred during admin registration. Please try again.';
+      if (e.code === 'auth/email-already-in-use') {
+        errorMsg = 'An account with this email already exists. Please log in.';
+      } else if (e.message) {
+        errorMsg = e.message;
+      }
+      return { success: false, error: errorMsg };
     }
-
-    const newUser = DBService.createUser({
-      name: cleanName,
-      email: cleanEmail,
-      role: 'ADMIN',
-      passwordHash: hashSecretSync(password),
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-    });
-
-    setCurrentUser(newUser);
-    localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(newUser));
-    setIsLoading(false);
-    return { success: true, user: newUser };
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await signOut(auth);
     setCurrentUser(null);
-    localStorage.removeItem(AUTH_SESSION_KEY);
   };
 
   const forgotPassword = async (email: string): Promise<{ success: boolean; message: string }> => {
-    await new Promise((res) => setTimeout(res, 400));
-    return {
-      success: true,
-      message: `Password reset instructions dispatched to ${email}.`,
-    };
+    try {
+      await sendPasswordResetEmail(auth, email);
+      return {
+        success: true,
+        message: `Password reset instructions dispatched to ${email}.`,
+      };
+    } catch (e: any) {
+      return {
+        success: false,
+        message: e.message || 'Error sending password reset email.',
+      };
+    }
   };
 
   const resetPassword = async (email: string): Promise<{ success: boolean; message: string }> => {
@@ -329,3 +492,4 @@ export const useAuth = () => {
   }
   return context;
 };
+
