@@ -71,7 +71,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 Mastermind <span className="text-brand-400">AidIT</span>
               </span>
               <span className="hidden sm:block text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
-                মাস্টারমাইন্ড এইডআইটি • 2026
+                মাস্টারমাইন্ড এইডআইটি • 2022
               </span>
             </div>
           </Link>
@@ -105,7 +105,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center gap-1.5 sm:gap-3">
             
             {/* Quick Global Search Icon */}
-            <button
+            {/* <button
               onClick={() => {
                 playUiClickSound();
                 onOpenSearch();
@@ -114,10 +114,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               aria-label="Search Academy Courses"
             >
               <Search className="w-4 h-4" />
-            </button>
+            </button> */}
 
             {/* Smart Cart Icon with Badge */}
-            <button
+            {/* <button
               onClick={() => {
                 playUiClickSound();
                 onOpenCart();
@@ -131,7 +131,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {cartCount}
                 </span>
               )}
-            </button>
+            </button> */}
 
             {/* User Profile / Dashboard / Login Action */}
             {isAuthenticated && currentUser ? (

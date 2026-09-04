@@ -14,7 +14,7 @@ import { ClassroomPage } from '../pages/classroom/ClassroomPage';
 // Auth Pages
 import { LoginPage } from '../pages/auth/LoginPage';
 import { RegisterPage } from '../pages/auth/RegisterPage';
-import { AdminRegisterPage } from '../pages/auth/AdminRegisterPage';
+// import { AdminRegisterPage } from '../pages/auth/AdminRegisterPage';
 import { ForgotPasswordPage } from '../pages/auth/ForgotPasswordPage';
 import { ResetPasswordPage } from '../pages/auth/ResetPasswordPage';
 
@@ -68,15 +68,16 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
       <Route
         path="/courses/:courseId"
         element={
-          <CourseDetailPage
+          <ProtectedRoute>
+            <CourseDetailPage
             onAddToCart={onAddToCart}
             cartItemIds={cartItemIds}
-          />
+          /></ProtectedRoute>
         }
       />
 
       {/* Checkout & Payment Gateway Route */}
-      <Route path="/checkout/:courseId" element={<CheckoutPage />} />
+      <Route path="/checkout/:courseId" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
 
       {/* Protected Student Learning Classroom Route */}
       <Route
@@ -93,7 +94,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
       <Route path="/admin/login" element={<LoginPage presetRole="ADMIN" />} />
       <Route path="/teacher/login" element={<LoginPage presetRole="TEACHER" />} />
       <Route path="/register" element={<RegisterPage />} />
-      <Route path="/admin/register" element={<AdminRegisterPage />} />
+      {/* <Route path="/admin/register" element={<AdminRegisterPage />} /> */}
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
 

@@ -976,14 +976,32 @@ export class DBService {
 
   static isUserEnrolled(userId: string, courseId: string): boolean {
     return this.getEnrollments().some(
-      (e) => e.userId === userId && e.courseId === courseId && e.status === 'ACTIVE'
+      (e) => e.userId === userId && e.courseId === courseId && (e.status === 'ACTIVE' || e.status === 'COMPLETED')
+    );
+  }
+
+  static hasPendingEnrollment(userId: string, courseId: string): boolean {
+    return this.getTransactions().some(
+      (t) => t.userId === userId && t.courseId === courseId && t.status === 'PENDING'
+    );
+  }
+
+  static getPendingTransaction(userId: string, courseId: string): Transaction | undefined {
+    return this.getTransactions().find(
+      (t) => t.userId === userId && t.courseId === courseId && t.status === 'PENDING'
     );
   }
 
   static enrollUser(userId: string, courseId: string): Enrollment {
     const enrollments = this.getEnrollments();
     const existing = enrollments.find((e) => e.userId === userId && e.courseId === courseId);
-    if (existing) return existing;
+    if (existing) {
+      if (existing.status !== 'ACTIVE' && existing.status !== 'COMPLETED') {
+        existing.status = 'ACTIVE';
+        saveData(STORAGE_KEYS.ENROLLMENTS, enrollments);
+      }
+      return existing;
+    }
 
     const course = this.getCourseById(courseId);
     const newEnrollment: Enrollment = {
@@ -1135,7 +1153,7 @@ export const DEFAULT_WEBSITE_CONTENT: WebsiteContentItem[] = [
     id: 'wc-1',
     locationKey: 'homepage_hero',
     sectionName: 'Homepage Hero Showcase',
-    title: 'Master WordPress & Web Development with Bangladesh\'s Premier Academy',
+    title: ' WordPress & Web Development with Bangladesh\'s Premier Academy',
     subtitle: 'Learn live & recorded hands-on courses from Hasibul Islam and expert mentors.',
     description: 'Master WordPress plugin creation, freelancing, and digital marketing with 100% practical projects, verified certificates, and direct instructor support.',
     mediaType: 'IMAGE',

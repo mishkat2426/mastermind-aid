@@ -57,9 +57,9 @@ HeroSection: React.FC<HeroSectionProps> = ({
   // Format real privacy-friendly tickers from database
   const tickerItems = realEnrollments.length > 0
     ? realEnrollments.slice(0, 5).map((e) => `⚡ A student recently enrolled in ${e.courseTitle}`)
-    : ['⚡ Mastermind AidIT • Premier AI & IT Skill Development Platform 2026'];
+    : ['⚡ Mastermind AidIT • Premier AI & IT Skill Development Platform 2022'];
 
-  const heroContent = DBService.getWebsiteContent('homepage_hero');
+  // const heroContent = DBService.getWebsiteContent('homepage_hero');
   const promoVideoContent = DBService.getWebsiteContent('homepage_promo_video');
 
   const [tickerIndex, setTickerIndex] = useState(0);
@@ -122,7 +122,7 @@ HeroSection: React.FC<HeroSectionProps> = ({
             {/* Pill Tag */}
             <motion.div variants={fadeUpVariant(0)} className="inline-flex items-center gap-2 bg-brand-500/20 border border-brand-400/40 text-brand-300 px-4 py-1.5 rounded-full text-xs sm:text-sm font-extrabold tracking-wide shadow-sm">
               <Zap className="w-4 h-4 text-amber-400 fill-amber-400 animate-bounce" />
-              <span>{heroContent?.subtitle || 'Be Skillful • Top E-Learning Ecosystem in Bangladesh 2026'}</span>
+              <span>{ 'Be Skillful • Top E-Learning Ecosystem in Bangladesh 2022'}</span>
             </motion.div>
 
             {/* Main Headline */}
@@ -130,7 +130,7 @@ HeroSection: React.FC<HeroSectionProps> = ({
               variants={fadeUpVariant(0.05)}
               className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.15]"
             >
-              {heroContent?.title || 'Best Online Course in Bangladesh 2026'} <br className="hidden sm:inline" />
+              {  'Web Development & Digital Marketing Academy'} <br className="hidden sm:inline" />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-sky-300 to-emerald-300 relative inline-block">
                 (Free & Premium)
               </span>
@@ -141,7 +141,7 @@ HeroSection: React.FC<HeroSectionProps> = ({
               variants={fadeUpVariant(0.1)}
               className="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto lg:mx-0 font-medium leading-relaxed"
             >
-              {heroContent?.description || 'Master WordPress Plugin Development, Digital Marketing, Meta Ads & Freelancing with hands-on practical masterclasses, real database verification, and live mentorship.'}
+               <span>{' WordPress Plugin Development, Digital Marketing, Meta Ads & Freelancing with hands-on practical masterclasses, real database verification, .'}</span>
             </motion.p>
 
             {/* Trust Bullet Badges */}

@@ -78,6 +78,7 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ onAddToCart,
   }
 
   const isEnrolled = currentUser ? DBService.isUserEnrolled(currentUser.id, course.id) : false;
+  const hasPending = currentUser ? DBService.hasPendingEnrollment(currentUser.id, course.id) : false;
   const isInCart = cartItemIds.includes(course.id);
 
   // Dynamic Rating Calculations from DB
@@ -88,6 +89,10 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ onAddToCart,
   const handleEnrollClick = () => {
     if (isEnrolled) {
       navigate(`/courses/${course.id}/learn`);
+      return;
+    }
+    if (hasPending) {
+      navigate('/dashboard');
       return;
     }
     if (course.isFree) {
@@ -224,40 +229,66 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ onAddToCart,
               </div>
 
               <div className="space-y-2">
-                <button
-                  onClick={handleEnrollClick}
-                  className="w-full py-3.5 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-extrabold text-sm rounded-2xl shadow-xl shadow-brand-500/30 flex items-center justify-center gap-2 transition"
-                >
-                  {isEnrolled ? (
-                    <>
-                      <Play className="w-4 h-4 fill-current" />
-                      <span>Continue Learning (Access Classroom)</span>
-                    </>
-                  ) : course.isFree ? (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      <span>Start Free Course Now</span>
-                    </>
-                  ) : (
-                    <>
-                      <Smartphone className="w-4 h-4" />
-                      <span>Enroll & Pay via bKash / Nagad / Card</span>
-                    </>
-                  )}
-                </button>
-
-                {!isEnrolled && !course.isFree && (
+                {isEnrolled ? (
                   <button
-                    onClick={() => onAddToCart(course)}
-                    className={`w-full py-2.5 rounded-xl font-bold text-xs border transition flex items-center justify-center gap-1.5 ${
-                      isInCart
-                        ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                        : 'bg-white/10 hover:bg-white/20 text-white border-white/20'
-                    }`}
+                    onClick={handleEnrollClick}
+                    className="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-extrabold text-sm rounded-2xl shadow-xl shadow-emerald-500/30 flex items-center justify-center gap-2 transition cursor-pointer"
                   >
-                    <ShoppingCart className="w-4 h-4" />
-                    <span>{isInCart ? 'Already in Shopping Cart' : 'Add to Shopping Cart'}</span>
+                    <Play className="w-4 h-4 fill-current" />
+                    <span>Continue Learning (Access Classroom)</span>
                   </button>
+                ) : hasPending ? (
+                  <div className="space-y-2">
+                    <div className="bg-amber-500/20 border border-amber-400/40 p-3.5 rounded-2xl text-xs text-amber-200 space-y-1">
+                      <div className="flex items-center gap-1.5 font-bold text-amber-300">
+                        <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span>Enrollment Request Pending</span>
+                      </div>
+                      <p className="text-[11px] text-slate-300">
+                        আপনার কোর্স রিকোয়েস্টটি অ্যাডমিনের অনুমোদনের অপেক্ষায় রয়েছে। অ্যাডমিন অ্যাপ্রুভ করলেই ক্লাসরুম স্বয়ংক্রিয়ভাবে আনলক হবে।
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => navigate('/dashboard')}
+                      className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-900 font-black text-xs rounded-2xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <Clock className="w-4 h-4" />
+                      <span>View Request in Dashboard</span>
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleEnrollClick}
+                      className="w-full py-3.5 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-extrabold text-sm rounded-2xl shadow-xl shadow-brand-500/30 flex items-center justify-center gap-2 transition cursor-pointer"
+                    >
+                      {course.isFree ? (
+                        <>
+                          <Sparkles className="w-4 h-4" />
+                          <span>Start Free Course Now</span>
+                        </>
+                      ) : (
+                        <>
+                          <Smartphone className="w-4 h-4" />
+                          <span>Enroll & Pay via bKash / Nagad / Card</span>
+                        </>
+                      )}
+                    </button>
+
+                    {!course.isFree && (
+                      <button
+                        onClick={() => onAddToCart(course)}
+                        className={`w-full py-2.5 rounded-xl font-bold text-xs border transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                          isInCart
+                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                            : 'bg-white/10 hover:bg-white/20 text-white border-white/20'
+                        }`}
+                      >
+                        <ShoppingCart className="w-4 h-4" />
+                        <span>{isInCart ? 'Already in Shopping Cart' : 'Add to Shopping Cart'}</span>
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>

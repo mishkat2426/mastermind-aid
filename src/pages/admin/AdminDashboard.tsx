@@ -32,7 +32,8 @@ import {
   RotateCcw,
   Key,
   Globe,
-  Video
+  Video,
+  Clock
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -72,7 +73,11 @@ export const AdminDashboard: React.FC = () => {
   const stats = DBService.getStats();
   const users = DBService.getUsers();
   const courses = DBService.getCourses();
-  const transactions = DBService.getTransactions();
+  const [trxList, setTrxList] = useState<Transaction[]>(() => DBService.getTransactions());
+  const [trxFilter, setTrxFilter] = useState<'ALL' | 'PENDING' | 'SUCCESS' | 'FAILED'>('ALL');
+  const [trxSearch, setTrxSearch] = useState('');
+  const [adminToast, setAdminToast] = useState<string | null>(null);
+
   const reviews = DBService.getReviews();
   const comments = DBService.getComments();
   const categories = DBService.getCategories();
@@ -80,6 +85,25 @@ export const AdminDashboard: React.FC = () => {
 
   const teachers = users.filter((u) => u.role === 'TEACHER');
   const students = users.filter((u) => u.role === 'STUDENT');
+
+  const pendingTrxCount = trxList.filter((t) => t.status === 'PENDING').length;
+
+  const showAdminToast = (msg: string) => {
+    setAdminToast(msg);
+    setTimeout(() => setAdminToast(null), 3500);
+  };
+
+  const handleUpdateTrxStatus = (trxId: string, status: Transaction['status']) => {
+    const updated = DBService.updateTransactionStatus(trxId, status, currentUser?.name || 'Admin');
+    if (updated) {
+      setTrxList(DBService.getTransactions());
+      if (status === 'SUCCESS') {
+        showAdminToast(`Enrollment approved for ${updated.userName} in "${updated.courseTitle}"! Access is now active.`);
+      } else if (status === 'FAILED') {
+        showAdminToast(`Request ${trxId} marked as Rejected.`);
+      }
+    }
+  };
 
   // User Actions
   const handleToggleSuspendUser = (user: User) => {
@@ -385,7 +409,7 @@ export const AdminDashboard: React.FC = () => {
               { id: 'teachers', label: 'Teachers', icon: <GraduationCap className="w-4 h-4" /> },
               { id: 'reviews', label: 'Reviews Moderation', icon: <Star className="w-4 h-4 text-amber-400" /> },
               { id: 'comments', label: 'Comments & Reports', icon: <MessageSquare className="w-4 h-4 text-rose-400" /> },
-              { id: 'transactions', label: 'Transactions Ledger', icon: <CreditCard className="w-4 h-4 text-emerald-400" /> },
+              { id: 'transactions', label: 'Transactions Ledger', icon: <CreditCard className="w-4 h-4 text-emerald-400" />, badge: pendingTrxCount },
               { id: 'categories', label: 'Category Manager', icon: <Tag className="w-4 h-4" /> },
               { id: 'administrators', label: 'Admins & Access Codes', icon: <ShieldCheck className="w-4 h-4 text-purple-400" /> },
               { id: 'audit', label: 'Audit Logs', icon: <History className="w-4 h-4 text-slate-400" /> },
@@ -393,14 +417,21 @@ export const AdminDashboard: React.FC = () => {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id as any)}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition cursor-pointer ${
                   activeTab === item.id
                     ? 'bg-purple-600 text-white shadow-md'
                     : 'text-slate-400 hover:bg-white/5 hover:text-white'
                 }`}
               >
-                {item.icon}
-                <span>{item.label}</span>
+                <div className="flex items-center gap-3">
+                  {item.icon}
+                  <span>{item.label}</span>
+                </div>
+                {item.badge && item.badge > 0 ? (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-slate-900 animate-pulse">
+                    {item.badge}
+                  </span>
+                ) : null}
               </button>
             ))}
           </nav>
@@ -447,6 +478,30 @@ export const AdminDashboard: React.FC = () => {
         {/* Tab 1: Overview */}
         {activeTab === 'overview' && (
           <div className="space-y-8">
+            {pendingTrxCount > 0 && (
+              <div className="p-4 bg-amber-500/20 border border-amber-400/50 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg animate-in fade-in duration-300">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400">
+                    <CreditCard className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-amber-300">
+                      {pendingTrxCount} Course Enrollment Request(s) Awaiting Approval!
+                    </h4>
+                    <p className="text-xs text-slate-300">
+                      Students have submitted payments. Review and approve their requests to unlock their classroom.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setActiveTab('transactions')}
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-extrabold text-xs rounded-xl shadow transition shrink-0 cursor-pointer"
+                >
+                  Review Requests →
+                </button>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
               <div className="bg-[#0A192F] p-5 rounded-2xl border border-slate-800 space-y-1">
                 <div className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Total Revenue</div>
@@ -463,9 +518,17 @@ export const AdminDashboard: React.FC = () => {
                 <div className="text-2xl sm:text-3xl font-black text-rose-400">{stats.reportedComments}</div>
               </div>
 
-              <div className="bg-[#0A192F] p-5 rounded-2xl border border-slate-800 space-y-1">
-                <div className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Pending Trx</div>
-                <div className="text-2xl sm:text-3xl font-black text-amber-400">{stats.pendingTransactions}</div>
+              <div 
+                onClick={() => setActiveTab('transactions')}
+                className="bg-[#0A192F] p-5 rounded-2xl border border-slate-800 space-y-1 cursor-pointer hover:border-amber-400 transition"
+                title="Click to view transactions"
+              >
+                <div className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider flex items-center justify-between">
+                  <span>Pending Requests</span>
+                  {pendingTrxCount > 0 && <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />}
+                </div>
+                <div className="text-2xl sm:text-3xl font-black text-amber-400">{pendingTrxCount}</div>
+                <div className="text-[10px] text-amber-300 font-semibold">Click to manage & approve →</div>
               </div>
             </div>
 
@@ -807,6 +870,246 @@ export const AdminDashboard: React.FC = () => {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* Tab: Transactions & Enrollment Requests Ledger */}
+        {activeTab === 'transactions' && (
+          <div className="bg-[#0A192F] p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-4">
+              <div>
+                <h3 className="text-xl font-black flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-emerald-400" />
+                  <span>Course Enrollment Requests & Transactions Ledger</span>
+                </h3>
+                <p className="text-xs text-slate-400 font-medium mt-1">
+                  Review student payment submissions, verify TrxID & mobile numbers, and approve course enrollments.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-400">Total: {trxList.length}</span>
+                {pendingTrxCount > 0 && (
+                  <span className="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-400/40 rounded-full text-xs font-black animate-pulse">
+                    {pendingTrxCount} Pending Approval
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Metrics */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-[#071325] p-4 rounded-2xl border border-slate-800 space-y-1">
+                <div className="text-[10px] font-extrabold uppercase text-slate-400">Total Requests</div>
+                <div className="text-xl font-black text-white">{trxList.length}</div>
+              </div>
+              <div className="bg-[#071325] p-4 rounded-2xl border border-slate-800 space-y-1">
+                <div className="text-[10px] font-extrabold uppercase text-amber-400">Pending Approvals</div>
+                <div className="text-xl font-black text-amber-400">{pendingTrxCount}</div>
+              </div>
+              <div className="bg-[#071325] p-4 rounded-2xl border border-slate-800 space-y-1">
+                <div className="text-[10px] font-extrabold uppercase text-emerald-400">Enrolled / Success</div>
+                <div className="text-xl font-black text-emerald-400">
+                  {trxList.filter((t) => t.status === 'SUCCESS').length}
+                </div>
+              </div>
+              <div className="bg-[#071325] p-4 rounded-2xl border border-slate-800 space-y-1">
+                <div className="text-[10px] font-extrabold uppercase text-purple-400">Collected Revenue</div>
+                <div className="text-xl font-black text-purple-400">
+                  ৳{trxList.filter((t) => t.status === 'SUCCESS').reduce((sum, t) => sum + (t.amount || 0), 0).toLocaleString()}
+                </div>
+              </div>
+            </div>
+
+            {/* Search & Filter Controls */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="relative w-full sm:w-80">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search student, TrxID, course, email..."
+                  value={trxSearch}
+                  onChange={(e) => setTrxSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
+                {(['ALL', 'PENDING', 'SUCCESS', 'FAILED'] as const).map((filter) => {
+                  const count = filter === 'ALL' ? trxList.length : trxList.filter((t) => t.status === filter).length;
+                  return (
+                    <button
+                      key={filter}
+                      onClick={() => setTrxFilter(filter)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5 ${
+                        trxFilter === filter
+                          ? filter === 'PENDING'
+                            ? 'bg-amber-500 text-slate-900 shadow-md font-black'
+                            : 'bg-purple-600 text-white shadow-md'
+                          : 'bg-[#071325] text-slate-400 hover:text-white border border-slate-800'
+                      }`}
+                    >
+                      <span>{filter}</span>
+                      <span className="text-[10px] opacity-75">({count})</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Transactions & Requests Table */}
+            <div className="overflow-x-auto rounded-2xl border border-slate-800">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#071325] text-slate-400 font-extrabold uppercase text-[10px] border-b border-slate-800 tracking-wider">
+                  <tr>
+                    <th className="p-3.5 px-4">TrxID & Date</th>
+                    <th className="p-3.5">Student Info</th>
+                    <th className="p-3.5">Course Requested</th>
+                    <th className="p-3.5">Amount & Gateway</th>
+                    <th className="p-3.5">Status</th>
+                    <th className="p-3.5 px-4 text-right">Approval Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800 font-medium text-slate-300">
+                  {trxList
+                    .filter((t) => {
+                      if (trxFilter !== 'ALL' && t.status !== trxFilter) return false;
+                      if (trxSearch.trim()) {
+                        const q = trxSearch.toLowerCase();
+                        return (
+                          t.transactionId.toLowerCase().includes(q) ||
+                          t.courseTitle.toLowerCase().includes(q) ||
+                          t.userName.toLowerCase().includes(q) ||
+                          t.userEmail.toLowerCase().includes(q) ||
+                          (t.accountNumber && t.accountNumber.includes(q))
+                        );
+                      }
+                      return true;
+                    })
+                    .map((t) => (
+                      <tr key={t.id} className="hover:bg-white/[0.02] transition">
+                        <td className="p-3.5 px-4 font-mono">
+                          <div className="font-black text-white text-xs">{t.transactionId}</div>
+                          <div className="text-[10px] text-slate-500">{new Date(t.createdAt).toLocaleString()}</div>
+                        </td>
+                        <td className="p-3.5">
+                          <div className="font-bold text-white text-xs">{t.userName}</div>
+                          <div className="text-[10px] text-purple-400">{t.userEmail}</div>
+                          {t.accountNumber && (
+                            <div className="text-[10px] text-slate-400 font-mono">Ph: {t.accountNumber}</div>
+                          )}
+                        </td>
+                        <td className="p-3.5">
+                          <div className="font-bold text-slate-100 max-w-xs line-clamp-2">{t.courseTitle}</div>
+                          <span className="text-[10px] text-slate-500 font-mono">ID: {t.courseId}</span>
+                        </td>
+                        <td className="p-3.5">
+                          <div className="font-black text-emerald-400 text-xs">৳{t.amount.toLocaleString()} BDT</div>
+                          <span className="inline-block mt-0.5 px-2 py-0.5 rounded bg-slate-800 text-[10px] font-bold text-slate-300">
+                            {t.paymentMethod}
+                          </span>
+                        </td>
+                        <td className="p-3.5">
+                          {t.status === 'PENDING' ? (
+                            <span className="inline-flex items-center gap-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-black px-2.5 py-1 rounded-full animate-pulse">
+                              <Clock className="w-3 h-3" /> PENDING
+                            </span>
+                          ) : t.status === 'SUCCESS' ? (
+                            <span className="inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-black px-2.5 py-1 rounded-full">
+                              <CheckCircle2 className="w-3 h-3" /> APPROVED
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[11px] font-black px-2.5 py-1 rounded-full">
+                              <XCircle className="w-3 h-3" /> REJECTED
+                            </span>
+                          )}
+                          {t.approvedBy && (
+                            <div className="text-[9px] text-slate-500 mt-1 font-mono">by {t.approvedBy}</div>
+                          )}
+                        </td>
+                        <td className="p-3.5 px-4 text-right">
+                          {t.status === 'PENDING' ? (
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateTrxStatus(t.id, 'SUCCESS')}
+                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition shadow flex items-center gap-1 cursor-pointer"
+                                title="Approve payment & activate course enrollment for student"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                                <span>Approve</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateTrxStatus(t.id, 'FAILED')}
+                                className="px-3 py-1.5 bg-rose-600/80 hover:bg-rose-600 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                                title="Reject request"
+                              >
+                                <XCircle className="w-3.5 h-3.5" />
+                                <span>Reject</span>
+                              </button>
+                            </div>
+                          ) : t.status === 'FAILED' ? (
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateTrxStatus(t.id, 'SUCCESS')}
+                              className="px-2.5 py-1 bg-slate-800 hover:bg-emerald-700 text-slate-300 hover:text-white rounded-lg text-[10px] font-bold transition cursor-pointer"
+                            >
+                              Re-Approve
+                            </button>
+                          ) : (
+                            <span className="text-[11px] text-emerald-400 font-bold flex items-center justify-end gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Enrolled
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  {trxList.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-slate-500">
+                        No transactions recorded yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Tab: Teachers Directory */}
+        {activeTab === 'teachers' && (
+          <div className="bg-[#0A192F] p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+              <div>
+                <h3 className="text-xl font-black flex items-center gap-2">
+                  <GraduationCap className="w-5 h-5 text-purple-400" />
+                  <span>Faculty & Teachers Directory ({teachers.length})</span>
+                </h3>
+                <p className="text-xs text-slate-400 font-medium mt-1">
+                  Instructors with teaching and curriculum management privileges.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {teachers.map((t) => (
+                <div key={t.id} className="p-5 bg-[#071325] rounded-2xl border border-slate-800 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <img src={t.avatar} alt={t.name} className="w-12 h-12 rounded-xl object-cover ring-2 ring-purple-500/50" />
+                    <div>
+                      <div className="font-extrabold text-white text-sm">{t.name}</div>
+                      <div className="text-[10px] text-purple-400 font-semibold">{t.email}</div>
+                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">
+                        {t.status}
+                      </span>
+                    </div>
+                  </div>
+                  {t.bio && <p className="text-xs text-slate-400 line-clamp-2">{t.bio}</p>}
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -1261,6 +1564,14 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Toast Notification Popup */}
+      {adminToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3.5 rounded-2xl shadow-2xl text-xs sm:text-sm font-bold flex items-center gap-2 animate-in slide-in-from-bottom-5 duration-300">
+          <CheckCircle2 className="w-5 h-5 text-white shrink-0" />
+          <span>{adminToast}</span>
         </div>
       )}
 

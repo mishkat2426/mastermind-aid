@@ -12,6 +12,7 @@ export const TransactionsPage: React.FC = () => {
 
   const [statusFilter, setStatusFilter] = useState<'ALL' | TransactionStatus>('ALL');
   const [search, setSearch] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const allTransactions = isAdmin
     ? DBService.getTransactions('ADMIN')
@@ -35,7 +36,7 @@ export const TransactionsPage: React.FC = () => {
   const handleUpdateStatus = (trxId: string, status: TransactionStatus) => {
     if (!isAdmin) return;
     DBService.updateTransactionStatus(trxId, status, currentUser?.name || 'Admin');
-    window.location.reload();
+    setRefreshKey((k) => k + 1);
   };
 
   const getStatusBadge = (status: TransactionStatus) => {
@@ -189,13 +190,13 @@ export const TransactionsPage: React.FC = () => {
                   <th className="p-4">Gateway</th>
                   <th className="p-4">Date</th>
                   <th className="p-4">Status</th>
-                  {isAdmin && <th className="p-4 px-6 text-right">Admin Action</th>}
+                  <th className="p-4 px-6 text-right">{isAdmin ? 'Admin Action' : 'Action'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium">
                 {filteredTransactions.length === 0 ? (
                   <tr>
-                    <td colSpan={isAdmin ? 8 : 6} className="p-8 text-center text-slate-400">
+                    <td colSpan={isAdmin ? 8 : 7} className="p-8 text-center text-slate-400">
                       No transaction records found matching your filters.
                     </td>
                   </tr>
@@ -228,26 +229,53 @@ export const TransactionsPage: React.FC = () => {
                       <td className="p-4">
                         {getStatusBadge(t.status)}
                       </td>
-                      {isAdmin && (
-                        <td className="p-4 px-6 text-right space-x-1">
-                          {t.status === 'PENDING' && (
+                      <td className="p-4 px-6 text-right space-x-1">
+                        {isAdmin ? (
+                          t.status === 'PENDING' ? (
                             <>
                               <button
                                 onClick={() => handleUpdateStatus(t.id, 'SUCCESS')}
-                                className="px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-[10px] font-bold hover:bg-emerald-700 transition"
+                                className="px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-[10px] font-bold hover:bg-emerald-700 transition cursor-pointer"
                               >
                                 Approve
                               </button>
                               <button
                                 onClick={() => handleUpdateStatus(t.id, 'FAILED')}
-                                className="px-2.5 py-1 bg-rose-600 text-white rounded-lg text-[10px] font-bold hover:bg-rose-700 transition"
+                                className="px-2.5 py-1 bg-rose-600 text-white rounded-lg text-[10px] font-bold hover:bg-rose-700 transition cursor-pointer"
                               >
                                 Reject
                               </button>
                             </>
-                          )}
-                        </td>
-                      )}
+                          ) : t.status === 'FAILED' ? (
+                            <button
+                              onClick={() => handleUpdateStatus(t.id, 'SUCCESS')}
+                              className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded text-[10px] font-bold hover:bg-emerald-600 hover:text-white transition cursor-pointer"
+                            >
+                              Re-Approve
+                            </button>
+                          ) : (
+                            <span className="text-[11px] text-emerald-600 font-bold">Enrolled</span>
+                          )
+                        ) : (
+                          t.status === 'SUCCESS' ? (
+                            <Link
+                              to={`/courses/${t.courseId}/learn`}
+                              className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition inline-flex items-center gap-1"
+                            >
+                              Start Learning →
+                            </Link>
+                          ) : t.status === 'PENDING' ? (
+                            <span className="text-amber-600 font-bold text-[11px]">⏳ Verification Pending</span>
+                          ) : (
+                            <Link
+                              to={`/checkout/${t.courseId}`}
+                              className="text-rose-600 font-bold text-xs hover:underline"
+                            >
+                              Retry
+                            </Link>
+                          )
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}

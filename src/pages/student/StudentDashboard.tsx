@@ -27,6 +27,7 @@ export const StudentDashboard: React.FC = () => {
 
   const enrollments = currentUser ? DBService.getEnrollmentsByUserId(currentUser.id) : [];
   const transactions = currentUser ? DBService.getTransactionsByUserId(currentUser.id, currentUser.id) : [];
+  const pendingTransactions = transactions.filter((t) => t.status === 'PENDING');
 
   const completedCount = enrollments.filter((e) => e.status === 'COMPLETED').length;
   const activeCount = enrollments.filter((e) => e.status === 'ACTIVE').length;
@@ -141,11 +142,74 @@ export const StudentDashboard: React.FC = () => {
 
         {/* Tab 1: Enrolled Courses */}
         {activeTab === 'my-courses' && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-black flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-brand-400" />
-              <span>Your Enrolled Courses ({enrollments.length})</span>
-            </h3>
+          <div className="space-y-6">
+
+            {/* Pending Requests Section */}
+            {pendingTransactions.length > 0 && (
+              <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 rounded-3xl p-6 space-y-4 shadow-xl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-500/20 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400">
+                      <Clock className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-base font-black text-amber-300">
+                        Pending Course Enrollment Requests ({pendingTransactions.length})
+                      </h4>
+                      <p className="text-xs text-slate-300">
+                        আপনার পাঠানো রিকোয়েস্টটি অ্যাডমিন ভেরিফাই করছেন। অ্যাডমিন অনুমোদন দিলেই নিচের একটিভ কোর্সে যোগ হবে।
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-amber-500/20 text-amber-300 border border-amber-400/40 animate-pulse self-start sm:self-auto">
+                    Awaiting Admin Approval
+                  </span>
+                </div>
+
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {pendingTransactions.map((trx) => (
+                    <div
+                      key={trx.id}
+                      className="bg-[#0A192F] p-5 rounded-2xl border border-amber-500/30 space-y-3 flex flex-col justify-between hover:border-amber-400/60 transition"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-start">
+                          <span className="text-[10px] font-mono text-amber-300 font-black bg-amber-500/20 px-2 py-0.5 rounded border border-amber-400/30">
+                            {trx.paymentMethod}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            {new Date(trx.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <h5 className="text-sm font-black text-white line-clamp-2">{trx.courseTitle}</h5>
+                        <div className="text-xs text-slate-400 space-y-1 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                          <div>TrxID: <span className="font-mono text-emerald-400 font-bold">{trx.transactionId}</span></div>
+                          <div>Amount: <span className="text-white font-black">৳{trx.amount.toLocaleString()} BDT</span></div>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                        <span className="text-[10px] text-amber-400 font-bold flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" /> Verification in Progress
+                        </span>
+                        <Link
+                          to={`/courses/${trx.courseId}`}
+                          className="text-xs font-extrabold text-brand-400 hover:text-brand-300 hover:underline"
+                        >
+                          Details →
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-black flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-brand-400" />
+                <span>Your Active Enrolled Courses ({enrollments.length})</span>
+              </h3>
 
             {enrollments.length === 0 ? (
               <div className="bg-[#0A192F] p-12 rounded-3xl border border-slate-800 text-center space-y-4">
@@ -198,6 +262,7 @@ export const StudentDashboard: React.FC = () => {
                 ))}
               </div>
             )}
+            </div>
           </div>
         )}
 
@@ -223,13 +288,14 @@ export const StudentDashboard: React.FC = () => {
                     <th className="p-3">Amount</th>
                     <th className="p-3">Method</th>
                     <th className="p-3">Status</th>
-                    <th className="p-3 text-right">Date</th>
+                    <th className="p-3">Date</th>
+                    <th className="p-3 text-right">Access Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800 font-medium text-slate-300">
                   {transactions.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-6 text-center text-slate-500">No payment transaction history recorded.</td>
+                      <td colSpan={7} className="p-6 text-center text-slate-500">No payment transaction history recorded.</td>
                     </tr>
                   ) : (
                     transactions.map((t) => (
@@ -243,7 +309,27 @@ export const StudentDashboard: React.FC = () => {
                             {t.status}
                           </span>
                         </td>
-                        <td className="p-3 text-right text-slate-400 font-mono">{new Date(t.createdAt).toLocaleDateString()}</td>
+                        <td className="p-3 text-slate-400 font-mono text-[11px]">{new Date(t.createdAt).toLocaleDateString()}</td>
+                        <td className="p-3 text-right">
+                          {t.status === 'SUCCESS' ? (
+                            <button
+                              type="button"
+                              onClick={() => navigate(`/courses/${t.courseId}/learn`)}
+                              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-bold transition inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              <Play className="w-3 h-3 fill-current" /> Classroom
+                            </button>
+                          ) : t.status === 'PENDING' ? (
+                            <span className="text-[10px] text-amber-400 font-semibold">Pending</span>
+                          ) : (
+                            <Link
+                              to={`/checkout/${t.courseId}`}
+                              className="text-[10px] text-rose-400 hover:underline font-bold"
+                            >
+                              Retry
+                            </Link>
+                          )}
+                        </td>
                       </tr>
                     ))
                   )}
