@@ -97,6 +97,8 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
       {/* <Route path="/admin/register" element={<AdminRegisterPage />} /> */}
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/auth/action" element={<ResetPasswordPage />} />
+      <Route path="/__/auth/action" element={<ResetPasswordPage />} />
 
       {/* Transactions Page (Protected) */}
       <Route

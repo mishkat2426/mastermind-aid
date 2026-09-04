@@ -65,7 +65,19 @@ export const CoursesPage: React.FC<CoursesPageProps> = ({ onAddToCart, cartItemI
     currency: 'BDT'
   });
 
-  const allCourses = DBService.getPublishedCourses();
+  const [allCourses, setAllCourses] = useState<Course[]>(() => DBService.getPublishedCourses());
+
+  useEffect(() => {
+    const handleCoursesUpdated = () => {
+      setAllCourses(DBService.getPublishedCourses());
+    };
+    window.addEventListener('mastermind_courses_updated', handleCoursesUpdated);
+    window.addEventListener('storage', handleCoursesUpdated);
+    return () => {
+      window.removeEventListener('mastermind_courses_updated', handleCoursesUpdated);
+      window.removeEventListener('storage', handleCoursesUpdated);
+    };
+  }, []);
 
   // Sync with URL query parameter changes
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Share2, 
@@ -86,8 +86,23 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
   selectedCategory,
   onSelectCategory,
 }) => {
-  const categories = DBService.getCategories();
-  const publishedCourses = DBService.getPublishedCourses();
+  const [categories, setCategories] = useState(() => DBService.getCategories());
+  const [publishedCourses, setPublishedCourses] = useState(() => DBService.getPublishedCourses());
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setCategories(DBService.getCategories());
+      setPublishedCourses(DBService.getPublishedCourses());
+    };
+    window.addEventListener('mastermind_courses_updated', handleUpdate);
+    window.addEventListener('mastermind_db_update', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('mastermind_courses_updated', handleUpdate);
+      window.removeEventListener('mastermind_db_update', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
 
   return (
     <section className="py-20 bg-white border-y border-slate-100 relative">

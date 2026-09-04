@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { DBService } from '../../services/db';
 import { useAuth } from '../../context/AuthContext';
-import { ReportReason } from '../../types/platform';
+import { Course, ReportReason } from '../../types/platform';
 import { Footer } from '../../components/layout/Footer';
 import { AIOrb } from '../../components/ai/AIOrb';
 
@@ -41,7 +41,20 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ onAddToCart,
   const navigate = useNavigate();
   const { currentUser, isAuthenticated } = useAuth();
 
-  const course = DBService.getCourseById(courseId || '');
+  const [course, setCourse] = useState<Course | undefined>(() => DBService.getCourseById(courseId || ''));
+
+  useEffect(() => {
+    setCourse(DBService.getCourseById(courseId || ''));
+    const handleCoursesUpdated = () => {
+      setCourse(DBService.getCourseById(courseId || ''));
+    };
+    window.addEventListener('mastermind_courses_updated', handleCoursesUpdated);
+    window.addEventListener('storage', handleCoursesUpdated);
+    return () => {
+      window.removeEventListener('mastermind_courses_updated', handleCoursesUpdated);
+      window.removeEventListener('storage', handleCoursesUpdated);
+    };
+  }, [courseId]);
 
   const [activeTab, setActiveTab] = useState<'overview' | 'syllabus' | 'reviews' | 'discussion' | 'instructor'>('overview');
   const [isPlayingVideo, setIsPlayingVideo] = useState(false);
@@ -375,7 +388,7 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ onAddToCart,
               <div className="bg-white p-8 rounded-3xl border border-slate-200 space-y-4">
                 <h3 className="text-xl font-black text-[#0A192F]">What You Will Learn</h3>
                 <div className="grid sm:grid-cols-2 gap-3">
-                  {course.features.map((feat, i) => (
+                  {(course.features || []).map((feat: string, i: number) => (
                     <div key={i} className="flex items-center gap-2.5 text-xs font-semibold text-slate-700 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
                       <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                       <span>{feat}</span>
@@ -391,7 +404,7 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ onAddToCart,
               <div className="bg-white p-6 rounded-3xl border border-slate-200 space-y-3">
                 <h4 className="text-base font-black text-[#0A192F]">Prerequisites</h4>
                 <ul className="space-y-2 text-xs text-slate-600 font-medium">
-                  {course.requirements.map((req, i) => (
+                  {(course.requirements || []).map((req: string, i: number) => (
                     <li key={i} className="flex items-start gap-2">
                       <span className="text-brand-500 font-bold">•</span>
                       <span>{req}</span>
@@ -406,9 +419,9 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ onAddToCart,
         {/* Tab 2: Syllabus */}
         {activeTab === 'syllabus' && (
           <div className="bg-white p-8 rounded-3xl border border-slate-200 space-y-4 max-w-4xl">
-            <h3 className="text-xl font-black text-[#0A192F]">Lessons Breakdown ({course.lessons.length} Modules)</h3>
+            <h3 className="text-xl font-black text-[#0A192F]">Lessons Breakdown ({(course.lessons || []).length} Modules)</h3>
             <div className="space-y-3">
-              {course.lessons.map((les, idx) => (
+              {(course.lessons || []).map((les: any, idx: number) => (
                 <div key={les.id} className="p-4 rounded-2xl border border-slate-200/80 bg-slate-50 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-xl bg-brand-500/10 text-brand-600 font-bold flex items-center justify-center text-xs">{idx + 1}</div>

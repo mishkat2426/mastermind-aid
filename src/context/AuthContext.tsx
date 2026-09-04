@@ -6,7 +6,10 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
-  updateProfile as firebaseUpdateProfile
+  confirmPasswordReset,
+  verifyPasswordResetCode,
+  updateProfile as firebaseUpdateProfile,
+  updatePassword as firebaseUpdatePassword
 } from 'firebase/auth';
 import { auth } from '../Firebase/firebase';
 
@@ -24,8 +27,11 @@ interface AuthContextType {
   registerAdmin: (name: string, email: string, password: string, securityCode: string) => Promise<{ success: boolean; user?: User; error?: string }>;
   logout: () => void;
   forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
-  resetPassword: (email: string) => Promise<{ success: boolean; message: string }>;
-  updateProfile: (updates: Partial<User>) => void;
+  verifyFirebaseResetCode: (oobCode: string) => Promise<{ success: boolean; email?: string; error?: string }>;
+  confirmFirebaseReset: (oobCode: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
+  resetPassword: (email: string, newPassword?: string) => Promise<{ success: boolean; message: string }>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (updates: Partial<User>) => Promise<{ success: boolean; user?: User; error?: string }>;
 }
 
 const AUTH_SESSION_KEY = 'mastermind_auth_session_v3';
@@ -429,34 +435,220 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const forgotPassword = async (email: string): Promise<{ success: boolean; message: string }> => {
-    try {
-      await sendPasswordResetEmail(auth, email);
-      return {
-        success: true,
-        message: `Password reset instructions dispatched to ${email}.`,
-      };
-    } catch (e: any) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) {
       return {
         success: false,
-        message: e.message || 'Error sending password reset email.',
+        message: 'অনুগ্রহ করে আপনার ইমেইল এড্রেস প্রদান করুন। (Please provide your email address.)',
+      };
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      return {
+        success: false,
+        message: 'অনুগ্রহ করে একটি সঠিক ইমেইল এড্রেস ফরম্যাট দিন। (Please enter a valid email address format.)',
+      };
+    }
+
+    try {
+      // Execute authentic Firebase password reset email dispatch
+      await sendPasswordResetEmail(auth, cleanEmail);
+      return {
+        success: true,
+        message: `ফায়ারবেস থেকে ${cleanEmail} ঠিকানায় পাসওয়ার্ড রিসেট লিংক সফলভাবে পাঠানো হয়েছে! অনুগ্রহ করে আপনার ইনবক্স অথবা স্প্যাম (Spam) ফোল্ডার চেক করুন। (Firebase password reset link dispatched to ${cleanEmail}. Please check your inbox or spam folder.)`,
+      };
+    } catch (e: any) {
+      let errorMsg = 'পাসওয়ার্ড রিসেট লিংক পাঠাতে সমস্যা হয়েছে। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।';
+      if (e.code === 'auth/user-not-found') {
+        errorMsg = 'এই ইমেইল দিয়ে কোনো ফায়ারবেস অ্যাকাউন্ট পাওয়া যায়নি। অনুগ্রহ করে সঠিক ইমেইল দিন বা নতুন অ্যাকাউন্ট খুলুন। (No Firebase account found with this email.)';
+      } else if (e.code === 'auth/invalid-email') {
+        errorMsg = 'ইমেইল এড্রেসটি সঠিক নয়। (Invalid email address format.)';
+      } else if (e.code === 'auth/too-many-requests') {
+        errorMsg = 'অতিরিক্ত অনুরোধ পাঠানো হয়েছে। সুরক্ষার জন্য কিছুক্ষণ পর আবার চেষ্টা করুন। (Too many attempts. Please try again later.)';
+      } else if (e.code === 'auth/network-request-failed') {
+        errorMsg = 'নেটওয়ার্ক সমস্যা। অনুগ্রহ করে ইন্টারনেট সংযোগ চেক করুন। (Network request failed.)';
+      } else if (e.message) {
+        errorMsg = e.message;
+      }
+      return {
+        success: false,
+        message: errorMsg,
       };
     }
   };
 
-  const resetPassword = async (email: string): Promise<{ success: boolean; message: string }> => {
-    await new Promise((res) => setTimeout(res, 400));
+  const verifyFirebaseResetCode = async (
+    oobCode: string
+  ): Promise<{ success: boolean; email?: string; error?: string }> => {
+    if (!oobCode) {
+      return { success: false, error: 'কোনো অ্যাকশন কোড পাওয়া যায়নি। (No action code found.)' };
+    }
+    try {
+      const email = await verifyPasswordResetCode(auth, oobCode);
+      return { success: true, email };
+    } catch (e: any) {
+      let errorMsg = 'পাসওয়ার্ড রিসেট লিংকটি মেয়াদোত্তীর্ণ বা অকার্যকর হয়ে গেছে। (The reset link is invalid or has expired.)';
+      if (e.code === 'auth/expired-action-code') {
+        errorMsg = 'এই পাসওয়ার্ড রিসেট লিংকের মেয়াদ শেষ হয়ে গেছে। দয়া করে নতুন করে লিংক পাঠানোর অনুরোধ করুন। (The reset link has expired.)';
+      } else if (e.code === 'auth/invalid-action-code') {
+        errorMsg = 'পাসওয়ার্ড রিসেট লিংকটি সঠিক নয় অথবা ইতিমধ্যে ব্যবহার করা হয়েছে। (The reset code is invalid or has already been used.)';
+      } else if (e.code === 'auth/user-disabled') {
+        errorMsg = 'এই অ্যাকাউন্টটি নিষ্ক্রিয় করা হয়েছে। (This account has been disabled.)';
+      } else if (e.message) {
+        errorMsg = e.message;
+      }
+      return { success: false, error: errorMsg };
+    }
+  };
+
+  const confirmFirebaseReset = async (
+    oobCode: string,
+    newPassword: string
+  ): Promise<{ success: boolean; message: string }> => {
+    if (!oobCode) {
+      return {
+        success: false,
+        message: 'পাসওয়ার্ড রিসেট কোড পাওয়া যায়নি। (No reset code provided.)',
+      };
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      return {
+        success: false,
+        message: 'নতুন পাসওয়ার্ড ন্যূনতম ৬ অক্ষরের হতে হবে। (Password must be at least 6 characters long.)',
+      };
+    }
+
+    try {
+      // 1. Retrieve associated email first to synchronize local DBService
+      let associatedEmail = '';
+      try {
+        associatedEmail = await verifyPasswordResetCode(auth, oobCode);
+      } catch (err) {
+        // If code expired or invalid, confirmPasswordReset below will throw corresponding error
+      }
+
+      // 2. Commit password reset in Firebase Authentication
+      await confirmPasswordReset(auth, oobCode, newPassword);
+
+      // 3. Keep local DBService in sync
+      if (associatedEmail) {
+        DBService.resetUserPasswordByEmail(associatedEmail.toLowerCase(), newPassword);
+      }
+
+      return {
+        success: true,
+        message: 'ফায়ারবেসে পাসওয়ার্ড সফলভাবে রিসেট ও আপডেট করা হয়েছে! এখন নতুন পাসওয়ার্ড দিয়ে লগইন করতে পারেন। (Firebase password reset successful! You can now log in.)',
+      };
+    } catch (e: any) {
+      let errorMsg = 'পাসওয়ার্ড রিসেট সম্পন্ন করা যায়নি। অনুগ্রহ করে পুনরায় চেষ্টা করুন।';
+      if (e.code === 'auth/weak-password') {
+        errorMsg = 'পাসওয়ার্ডটি খুবই দুর্বল। অন্তত ৬ অক্ষরের শক্তিশালী পাসওয়ার্ড দিন। (Password is too weak.)';
+      } else if (e.code === 'auth/expired-action-code') {
+        errorMsg = 'এই পাসওয়ার্ড রিসেট লিংকের মেয়াদ শেষ হয়ে গেছে। অনুগ্রহ করে আবার নতুন লিংকের অনুরোধ করুন। (The reset link has expired.)';
+      } else if (e.code === 'auth/invalid-action-code') {
+        errorMsg = 'পাসওয়ার্ড রিসেট লিংকটি সঠিক নয় অথবা ইতিমধ্যে ব্যবহার হয়ে গেছে। (The reset link is invalid or has already been used.)';
+      } else if (e.code === 'auth/user-not-found') {
+        errorMsg = 'সংশ্লিষ্ট অ্যাকাউন্টটি পাওয়া যায়নি। (User not found.)';
+      } else if (e.message) {
+        errorMsg = e.message;
+      }
+      return {
+        success: false,
+        message: errorMsg,
+      };
+    }
+  };
+
+  const resetPassword = async (email: string, newPassword?: string): Promise<{ success: boolean; message: string }> => {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!newPassword) {
+      await new Promise((res) => setTimeout(res, 300));
+      return {
+        success: true,
+        message: 'Your password has been successfully updated. You can now log in.',
+      };
+    }
+
+    if (newPassword.length < 6) {
+      return {
+        success: false,
+        message: 'পাসওয়ার্ড ন্যূনতম ৬ অক্ষরের হতে হবে। (Password must be at least 6 characters)',
+      };
+    }
+
+    // 1. Firebase password update if currently active user matches
+    if (auth.currentUser && auth.currentUser.email?.toLowerCase() === cleanEmail) {
+      try {
+        await firebaseUpdatePassword(auth.currentUser, newPassword);
+      } catch (fbErr) {
+        console.warn('Firebase update password notice:', fbErr);
+      }
+    }
+
+    // 2. DBService password update
+    const result = DBService.resetUserPasswordByEmail(cleanEmail, newPassword);
+    if (!result.success) {
+      return {
+        success: false,
+        message: result.error || 'Failed to reset password.',
+      };
+    }
+
     return {
       success: true,
-      message: 'Your password has been successfully updated. You can now log in.',
+      message: 'পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে! এখন নতুন পাসওয়ার্ড দিয়ে লগইন করতে পারেন। (Password successfully updated! You can now log in.)',
     };
   };
 
-  const updateProfile = (updates: Partial<User>) => {
-    if (!currentUser) return;
-    const updated = DBService.updateUser(currentUser.id, updates);
-    if (updated) {
-      setCurrentUser(updated);
-      localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(updated));
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<{ success: boolean; error?: string }> => {
+    if (!currentUser) {
+      return { success: false, error: 'User is not logged in.' };
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      return { success: false, error: 'নতুন পাসওয়ার্ড ন্যূনতম ৬ অক্ষরের হতে হবে। (New password must be at least 6 characters)' };
+    }
+
+    // 1. Try Firebase update if auth user is present
+    if (auth.currentUser) {
+      try {
+        await firebaseUpdatePassword(auth.currentUser, newPassword);
+      } catch (fbErr: any) {
+        console.warn('Firebase password update warning:', fbErr.message);
+      }
+    }
+
+    // 2. Update DBService
+    const result = DBService.updateUserPassword(currentUser.id, currentPassword, newPassword);
+    return result;
+  };
+
+  const updateProfile = async (updates: Partial<User>): Promise<{ success: boolean; user?: User; error?: string }> => {
+    if (!currentUser) return { success: false, error: 'User not logged in' };
+
+    try {
+      if (auth.currentUser && (updates.name || updates.avatar)) {
+        try {
+          await firebaseUpdateProfile(auth.currentUser, {
+            displayName: JSON.stringify({ name: updates.name || currentUser.name, role: currentUser.role }),
+            photoURL: updates.avatar || currentUser.avatar,
+          });
+        } catch (fbErr) {
+          console.warn('Firebase profile sync note:', fbErr);
+        }
+      }
+
+      const updated = DBService.updateUserProfile(currentUser.id, updates);
+      if (updated) {
+        setCurrentUser(updated);
+        localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(updated));
+        return { success: true, user: updated };
+      }
+      return { success: false, error: 'Failed to update profile.' };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Profile update error.' };
     }
   };
 
@@ -476,7 +668,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         registerAdmin,
         logout,
         forgotPassword,
+        verifyFirebaseResetCode,
+        confirmFirebaseReset,
         resetPassword,
+        changePassword,
         updateProfile,
       }}
     >

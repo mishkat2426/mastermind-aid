@@ -179,6 +179,12 @@ function loadData<T>(key: string, fallback: T): T {
 function saveData<T>(key: string, data: T): void {
   try {
     localStorage.setItem(key, JSON.stringify(data));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('mastermind_db_update', { detail: { key, data } }));
+      if (key === STORAGE_KEYS.COURSES) {
+        window.dispatchEvent(new CustomEvent('mastermind_courses_updated', { detail: data }));
+      }
+    }
   } catch (e) {
     console.error('Database write error:', e);
   }
@@ -444,6 +450,76 @@ export class DBService {
     return users[idx];
   }
 
+  static updateUserProfile(userId: string, updates: { name?: string; phone?: string; avatar?: string; bio?: string }): User | undefined {
+    const users = this.getUsers();
+    const idx = users.findIndex((u) => u.id === userId);
+    if (idx === -1) return undefined;
+
+    users[idx] = {
+      ...users[idx],
+      name: updates.name !== undefined && updates.name.trim() ? updates.name.trim() : users[idx].name,
+      phone: updates.phone !== undefined ? updates.phone.trim() : users[idx].phone,
+      avatar: updates.avatar !== undefined && updates.avatar.trim() ? updates.avatar.trim() : users[idx].avatar,
+      bio: updates.bio !== undefined ? updates.bio.trim() : users[idx].bio,
+      updatedAt: new Date().toISOString(),
+    };
+    saveData(STORAGE_KEYS.USERS, users);
+    this.logAdminAction(userId, users[idx].name, `Profile details updated`, 'User', userId);
+    return users[idx];
+  }
+
+  static updateUserPassword(userId: string, currentPassword: string | undefined, newPassword: string): { success: boolean; error?: string } {
+    const users = this.getUsers();
+    const idx = users.findIndex((u) => u.id === userId);
+    if (idx === -1) {
+      return { success: false, error: 'User account not found.' };
+    }
+
+    const user = users[idx];
+    if (user.passwordHash && currentPassword) {
+      const hashedOld = hashSecretSync(currentPassword);
+      if (hashedOld !== user.passwordHash) {
+        return { success: false, error: 'Current password does not match. (বর্তমান পাসওয়ার্ড সঠিক নয়)' };
+      }
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      return { success: false, error: 'New password must be at least 6 characters. (পাসওয়ার্ড ন্যূনতম ৬ অক্ষরের হতে হবে)' };
+    }
+
+    users[idx] = {
+      ...user,
+      passwordHash: hashSecretSync(newPassword),
+      updatedAt: new Date().toISOString(),
+    };
+    saveData(STORAGE_KEYS.USERS, users);
+    this.logAdminAction(userId, user.name, `User password reset/changed successfully`, 'Security', userId);
+    return { success: true };
+  }
+
+  static resetUserPasswordByEmail(email: string, newPassword: string): { success: boolean; error?: string } {
+    const cleanEmail = email.trim().toLowerCase();
+    const users = this.getUsers();
+    const idx = users.findIndex((u) => u.email.toLowerCase() === cleanEmail);
+    if (idx === -1) {
+      return { success: false, error: 'No account found with this email address. (এই ইমেইলে কোনো অ্যাকাউন্ট পাওয়া যায়নি)' };
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      return { success: false, error: 'New password must be at least 6 characters. (পাসওয়ার্ড ন্যূনতম ৬ অক্ষরের হতে হবে)' };
+    }
+
+    const user = users[idx];
+    users[idx] = {
+      ...user,
+      passwordHash: hashSecretSync(newPassword),
+      updatedAt: new Date().toISOString(),
+    };
+    saveData(STORAGE_KEYS.USERS, users);
+    this.logAdminAction(user.id, user.name, `Password reset by email for ${cleanEmail}`, 'Security', user.id);
+    return { success: true };
+  }
+
   static suspendUser(id: string, adminName: string): boolean {
     const user = this.updateUser(id, { status: 'SUSPENDED' });
     if (user) {
@@ -531,13 +607,28 @@ export class DBService {
   }
 
   static getCourseById(id: string): Course | undefined {
-    return this.getCourses().find((c) => c.id === id);
+    if (!id) return undefined;
+    const clean = id.trim();
+    return this.getCourses().find((c) => c.id === clean || c.slug === clean);
   }
 
   static createCourse(course: Omit<Course, 'id' | 'createdAt' | 'updatedAt'>, adminName?: string): Course {
     const courses = this.getCourses();
+    const generatedSlug = (course.slug || course.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')) || `course-${Date.now()}`;
     const newCourse: Course = {
       ...course,
+      bengaliTitle: course.bengaliTitle || course.title,
+      bengaliDescription: course.bengaliDescription || course.description,
+      discountPrice: course.discountPrice,
+      badge: course.badge,
+      requirements: course.requirements && course.requirements.length > 0 ? course.requirements : ['Basic computer & internet knowledge'],
+      features: course.features && course.features.length > 0 ? course.features : ['Lifetime Access', 'Certificate of Completion', 'Dedicated Mentor Support'],
+      lessons: course.lessons || [],
+      rating: course.rating || 5,
+      reviewCount: course.reviewCount || 1,
+      studentsCount: course.studentsCount || 0,
+      lessonsCount: course.lessonsCount || (course.lessons?.length || 10),
+      slug: generatedSlug,
       id: `crs-${Date.now()}`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -553,13 +644,37 @@ export class DBService {
 
   static updateCourse(id: string, updates: Partial<Course>, adminName?: string): Course | undefined {
     const courses = this.getCourses();
-    const idx = courses.findIndex((c) => c.id === id);
+    const cleanId = id.trim();
+    const idx = courses.findIndex((c) => c.id === cleanId || c.slug === cleanId);
     if (idx === -1) return undefined;
-    courses[idx] = { ...courses[idx], ...updates, updatedAt: new Date().toISOString() };
+
+    // Harmonize price and isFree so changing paid to free or free to paid works seamlessly
+    let finalPrice = updates.price !== undefined ? updates.price : courses[idx].price;
+    let finalIsFree = updates.isFree !== undefined ? updates.isFree : courses[idx].isFree;
+
+    if (updates.isFree === true || updates.price === 0) {
+      finalPrice = 0;
+      finalIsFree = true;
+    } else if (updates.price !== undefined && updates.price > 0) {
+      finalIsFree = false;
+      finalPrice = updates.price;
+    }
+
+    const mergedCourse: Course = {
+      ...courses[idx],
+      ...updates,
+      price: finalPrice,
+      isFree: finalIsFree,
+      thumbnail: updates.thumbnail || courses[idx].thumbnail,
+      image: updates.thumbnail || updates.image || courses[idx].image || courses[idx].thumbnail,
+      updatedAt: new Date().toISOString(),
+    };
+
+    courses[idx] = mergedCourse;
     saveData(STORAGE_KEYS.COURSES, courses);
 
     if (adminName) {
-      this.logAdminAction('usr-admin-1', adminName, `Updated course: "${courses[idx].title}"`, 'Course', id);
+      this.logAdminAction('usr-admin-1', adminName, `Updated course: "${courses[idx].title}"`, 'Course', courses[idx].id);
     }
     return courses[idx];
   }

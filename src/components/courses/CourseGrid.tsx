@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Star, 
@@ -37,7 +37,19 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [wishlist, setWishlist] = useState<string[]>([]);
 
-  const allCourses = DBService.getPublishedCourses();
+  const [allCourses, setAllCourses] = useState<Course[]>(() => DBService.getPublishedCourses());
+
+  useEffect(() => {
+    const handleCoursesUpdated = () => {
+      setAllCourses(DBService.getPublishedCourses());
+    };
+    window.addEventListener('mastermind_courses_updated', handleCoursesUpdated);
+    window.addEventListener('storage', handleCoursesUpdated);
+    return () => {
+      window.removeEventListener('mastermind_courses_updated', handleCoursesUpdated);
+      window.removeEventListener('storage', handleCoursesUpdated);
+    };
+  }, []);
 
   const toggleWishlist = (courseId: string, e: React.MouseEvent) => {
     e.stopPropagation();

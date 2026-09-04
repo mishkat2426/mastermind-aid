@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { DBService } from '../../services/db';
 import { 
@@ -14,16 +14,117 @@ import {
   Compass,
   ArrowRight,
   ShieldCheck,
-  FileText
+  FileText,
+  Lock,
+  Mail,
+  Phone,
+  Eye,
+  EyeOff,
+  Save,
+  AlertCircle,
+  Camera,
+  KeyRound
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AIOrb } from '../../components/ai/AIOrb';
 
+const STUDENT_AVATAR_PRESETS = [
+  { label: 'Modern Tech', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80' },
+  { label: 'Developer', url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=250&q=80' },
+  { label: 'Student Pro', url: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=250&q=80' },
+  { label: 'Designer', url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=250&q=80' },
+  { label: 'Innovator', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=250&q=80' },
+  { label: 'Leader', url: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=250&q=80' },
+];
+
 export const StudentDashboard: React.FC = () => {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, updateProfile, changePassword } = useAuth();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<'my-courses' | 'progress' | 'transactions' | 'certificates' | 'profile'>('my-courses');
+
+  // Profile Form States
+  const [profileName, setProfileName] = useState(currentUser?.name || '');
+  const [profilePhone, setProfilePhone] = useState(currentUser?.phone || '');
+  const [profileAvatar, setProfileAvatar] = useState(currentUser?.avatar || '');
+  const [profileBio, setProfileBio] = useState(currentUser?.bio || '');
+  const [profileSuccessMsg, setProfileSuccessMsg] = useState('');
+  const [profileErrorMsg, setProfileErrorMsg] = useState('');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  // Password Reset Form States
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showOldPass, setShowOldPass] = useState(false);
+  const [showNewPass, setShowNewPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
+  const [passwordSuccessMsg, setPasswordSuccessMsg] = useState('');
+  const [passwordErrorMsg, setPasswordErrorMsg] = useState('');
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
+
+  useEffect(() => {
+    if (currentUser) {
+      setProfileName(currentUser.name || '');
+      setProfilePhone(currentUser.phone || '');
+      setProfileAvatar(currentUser.avatar || '');
+      setProfileBio(currentUser.bio || '');
+    }
+  }, [currentUser]);
+
+  const handleProfileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileSuccessMsg('');
+    setProfileErrorMsg('');
+    if (!profileName.trim()) {
+      setProfileErrorMsg('নাম খালি রাখা যাবে না। (Name cannot be empty)');
+      return;
+    }
+    setIsSavingProfile(true);
+    const res = await updateProfile({
+      name: profileName.trim(),
+      phone: profilePhone.trim(),
+      avatar: profileAvatar.trim(),
+      bio: profileBio.trim(),
+    });
+    setIsSavingProfile(false);
+    if (res.success) {
+      setProfileSuccessMsg('প্রোফাইল তথ্য সফলভাবে আপডেট করা হয়েছে! (Profile updated successfully!)');
+      setTimeout(() => setProfileSuccessMsg(''), 4500);
+    } else {
+      setProfileErrorMsg(res.error || 'Failed to update profile.');
+    }
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordSuccessMsg('');
+    setPasswordErrorMsg('');
+    if (!newPassword) {
+      setPasswordErrorMsg('নতুন পাসওয়ার্ড লিখুন। (Please enter new password)');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPasswordErrorMsg('নতুন পাসওয়ার্ড ন্যূনতম ৬ অক্ষরের হতে হবে। (Password must be at least 6 characters)');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordErrorMsg('কনফার্ম পাসওয়ার্ডটি মেলেনি। (Confirm password does not match)');
+      return;
+    }
+    setIsSavingPassword(true);
+    const res = await changePassword(currentPassword, newPassword);
+    setIsSavingPassword(false);
+    if (res.success) {
+      setPasswordSuccessMsg('পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে! (Password successfully updated!)');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setPasswordSuccessMsg(''), 4500);
+    } else {
+      setPasswordErrorMsg(res.error || 'Failed to update password.');
+    }
+  };
 
   const enrollments = currentUser ? DBService.getEnrollmentsByUserId(currentUser.id) : [];
   const transactions = currentUser ? DBService.getTransactionsByUserId(currentUser.id, currentUser.id) : [];
@@ -54,6 +155,7 @@ export const StudentDashboard: React.FC = () => {
               { id: 'progress', label: 'Learning Progress', icon: <Sparkles className="w-4 h-4" /> },
               { id: 'transactions', label: 'Transactions & Payment', icon: <CreditCard className="w-4 h-4" /> },
               { id: 'certificates', label: 'Certificates', icon: <Award className="w-4 h-4" /> },
+              { id: 'profile', label: 'Profile & Security (প্রোফাইল ও সিকিউরিটি)', icon: <User className="w-4 h-4" /> },
             ].map((item) => (
               <button
                 key={item.id}
@@ -80,11 +182,17 @@ export const StudentDashboard: React.FC = () => {
         </div>
 
         <div className="pt-6 border-t border-slate-800 space-y-3">
-          <div className="flex items-center gap-2.5 text-xs text-slate-300">
-            <img src={currentUser?.avatar} alt={currentUser?.name} className="w-8 h-8 rounded-full object-cover ring-2 ring-brand-400" />
+          <div 
+            onClick={() => setActiveTab('profile')}
+            className={`flex items-center gap-2.5 text-xs p-2 rounded-2xl cursor-pointer transition ${
+              activeTab === 'profile' ? 'bg-brand-500/20 border border-brand-500/40' : 'hover:bg-white/5'
+            }`}
+            title="Click to view & edit Profile"
+          >
+            <img src={currentUser?.avatar || STUDENT_AVATAR_PRESETS[0].url} alt={currentUser?.name} className="w-9 h-9 rounded-full object-cover ring-2 ring-brand-400 shrink-0" />
             <div className="truncate">
-              <div className="font-bold truncate">{currentUser?.name}</div>
-              <div className="text-[10px] text-brand-400 font-semibold">{currentUser?.email}</div>
+              <div className="font-bold truncate text-white">{currentUser?.name}</div>
+              <div className="text-[10px] text-brand-400 font-semibold truncate">{currentUser?.email}</div>
             </div>
           </div>
 
@@ -335,6 +443,294 @@ export const StudentDashboard: React.FC = () => {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 5: Profile & Security */}
+        {activeTab === 'profile' && (
+          <div className="space-y-8 max-w-4xl animate-in fade-in duration-200">
+            <div>
+              <h3 className="text-xl font-black text-white flex items-center gap-2">
+                <User className="w-5 h-5 text-brand-400" />
+                <span>Profile & Account Security (প্রোফাইল ও সিকিউরিটি)</span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-1">
+                আপনার ব্যক্তিগত প্রোফাইল তথ্য ও লগইন পাসওয়ার্ড আপডেট করুন।
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Left column: Profile Information */}
+              <div className="lg:col-span-7 bg-[#0A192F] p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6 shadow-xl">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                  <div>
+                    <h4 className="text-sm font-black text-white">Personal Information (ব্যক্তিগত তথ্য)</h4>
+                    <p className="text-[11px] text-slate-400">Update your public details and contact info</p>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-brand-500/20 text-brand-400 border border-brand-500/30">
+                    {currentUser?.role || 'STUDENT'}
+                  </span>
+                </div>
+
+                {profileSuccessMsg && (
+                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-xs text-emerald-300 font-bold flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{profileSuccessMsg}</span>
+                  </div>
+                )}
+
+                {profileErrorMsg && (
+                  <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-xs text-rose-300 font-bold flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                    <span>{profileErrorMsg}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleProfileSubmit} className="space-y-5">
+                  {/* Avatar Picker */}
+                  <div className="space-y-3">
+                    <label className="block text-xs font-bold text-slate-300">
+                      Profile Picture (প্রোফাইল ছবি)
+                    </label>
+
+                    <div className="flex items-center gap-4">
+                      <div className="relative w-16 h-16 rounded-2xl overflow-hidden ring-2 ring-brand-500 bg-slate-800 shrink-0 shadow-lg">
+                        <img
+                          src={profileAvatar || STUDENT_AVATAR_PRESETS[0].url}
+                          alt="Avatar Preview"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = STUDENT_AVATAR_PRESETS[0].url;
+                          }}
+                        />
+                      </div>
+                      <div className="flex-1 space-y-1.5">
+                        <input
+                          type="url"
+                          placeholder="Or paste custom image URL"
+                          value={profileAvatar}
+                          onChange={(e) => setProfileAvatar(e.target.value)}
+                          className="w-full px-3 py-2 bg-[#071325] border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-brand-500 font-mono"
+                        />
+                        <span className="text-[10px] text-slate-400 block">
+                          Choose an avatar preset below or paste your image URL
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Presets */}
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {STUDENT_AVATAR_PRESETS.map((p) => (
+                        <button
+                          key={p.label}
+                          type="button"
+                          onClick={() => setProfileAvatar(p.url)}
+                          className={`flex items-center gap-1.5 p-1 rounded-xl border transition cursor-pointer ${
+                            profileAvatar === p.url
+                              ? 'border-brand-500 bg-brand-500/20 text-brand-300'
+                              : 'border-slate-800 hover:border-slate-700 bg-[#071325] text-slate-400'
+                          }`}
+                        >
+                          <img src={p.url} alt={p.label} className="w-6 h-6 rounded-lg object-cover" />
+                          <span className="text-[10px] font-bold pr-1">{p.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Name */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Full Name (পুরো নাম)</label>
+                    <div className="relative">
+                      <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        required
+                        value={profileName}
+                        onChange={(e) => setProfileName(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-xs font-bold text-white focus:outline-none focus:border-brand-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Email & Phone Row */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">Email (ইমেইল)</label>
+                      <div className="relative">
+                        <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="email"
+                          disabled
+                          value={currentUser?.email || ''}
+                          className="w-full pl-10 pr-4 py-2.5 bg-[#071325]/50 border border-slate-800 rounded-xl text-xs font-medium text-slate-400 cursor-not-allowed"
+                        />
+                      </div>
+                      <span className="text-[9px] text-slate-500 mt-1 block">Email is locked for account safety</span>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">Phone (ফোন নম্বর)</label>
+                      <div className="relative">
+                        <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="tel"
+                          placeholder="e.g. +880 1712-345678"
+                          value={profilePhone}
+                          onChange={(e) => setProfilePhone(e.target.value)}
+                          className="w-full pl-10 pr-4 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-xs font-bold text-white focus:outline-none focus:border-brand-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bio */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Bio / About Me (নিজের সম্পর্কে)</label>
+                    <textarea
+                      rows={3}
+                      placeholder="Share a short bio about your learning goals..."
+                      value={profileBio}
+                      onChange={(e) => setProfileBio(e.target.value)}
+                      className="w-full p-3 bg-[#071325] border border-slate-700 rounded-xl text-xs font-medium text-white focus:outline-none focus:border-brand-500"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSavingProfile}
+                    className="w-full py-3 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-lg shadow-brand-500/20 transition flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{isSavingProfile ? 'Saving Changes...' : 'Save Profile Changes (প্রোফাইল সংরক্ষণ করুন)'}</span>
+                  </button>
+                </form>
+              </div>
+
+              {/* Right column: Password Reset & Security */}
+              <div className="lg:col-span-5 space-y-6">
+                <div className="bg-[#0A192F] p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6 shadow-xl">
+                  <div className="border-b border-slate-800 pb-4">
+                    <h4 className="text-sm font-black text-white flex items-center gap-2">
+                      <Lock className="w-4 h-4 text-emerald-400" />
+                      <span>Change Password (পাসওয়ার্ড পরিবর্তন)</span>
+                    </h4>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Keep your account safe by updating your password regularly</p>
+                  </div>
+
+                  {passwordSuccessMsg && (
+                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-xs text-emerald-300 font-bold flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span>{passwordSuccessMsg}</span>
+                    </div>
+                  )}
+
+                  {passwordErrorMsg && (
+                    <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-xs text-rose-300 font-bold flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                      <span>{passwordErrorMsg}</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                    {/* Current Password */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                        Current Password (বর্তমান পাসওয়ার্ড)
+                      </label>
+                      <div className="relative">
+                        <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <input
+                          type={showOldPass ? 'text' : 'password'}
+                          placeholder="Enter current password"
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          className="w-full pl-10 pr-10 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-xs font-bold text-white focus:outline-none focus:border-emerald-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowOldPass(!showOldPass)}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                        >
+                          {showOldPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* New Password */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                        New Password (নতুন পাসওয়ার্ড)
+                      </label>
+                      <div className="relative">
+                        <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <input
+                          type={showNewPass ? 'text' : 'password'}
+                          required
+                          placeholder="At least 6 characters"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          className="w-full pl-10 pr-10 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-xs font-bold text-white focus:outline-none focus:border-emerald-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPass(!showNewPass)}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                        >
+                          {showNewPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Confirm Password */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                        Confirm New Password (পাসওয়ার্ড নিশ্চিত করুন)
+                      </label>
+                      <div className="relative">
+                        <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <input
+                          type={showConfirmPass ? 'text' : 'password'}
+                          required
+                          placeholder="Re-enter new password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className="w-full pl-10 pr-10 py-2.5 bg-[#071325] border border-slate-700 rounded-xl text-xs font-bold text-white focus:outline-none focus:border-emerald-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPass(!showConfirmPass)}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                        >
+                          {showConfirmPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isSavingPassword}
+                      className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <ShieldCheck className="w-4 h-4" />
+                      <span>{isSavingPassword ? 'Updating...' : 'Update Password (পাসওয়ার্ড সেভ করুন)'}</span>
+                    </button>
+                  </form>
+                </div>
+
+                {/* Account Security Tip Box */}
+                <div className="p-5 bg-gradient-to-br from-brand-500/10 via-[#0A192F] to-slate-900 rounded-3xl border border-brand-500/20 space-y-2">
+                  <div className="flex items-center gap-2 text-brand-400 text-xs font-black">
+                    <Sparkles className="w-4 h-4" />
+                    <span>Security Advice (নিরাপত্তা টিপস)</span>
+                  </div>
+                  <ul className="text-[11px] text-slate-400 space-y-1.5 list-disc list-inside">
+                    <li>পাসওয়ার্ডে বড় ও ছোট হাতের অক্ষর এবং সংখ্যা ব্যবহার করুন।</li>
+                    <li>পাসওয়ার্ড কারও সাথে শেয়ার করবেন না।</li>
+                    <li>যেকোনো সহায়তার জন্য সাপোর্ট টিমের সাথে যোগাযোগ করুন।</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         )}

@@ -370,7 +370,7 @@ export const CheckoutPage: React.FC = () => {
                     </div>
                   ) : (
                     <>
-                      <span>Submit Enrollment Request (অ্যাডমিনের কাছে রিকোয়েস্ট পাঠান)</span>
+                      <span>Submit Enrollment Request (রিকোয়েস্ট পাঠান)</span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
