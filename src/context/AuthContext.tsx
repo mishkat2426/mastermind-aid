@@ -439,7 +439,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!cleanEmail) {
       return {
         success: false,
-        message: 'অনুগ্রহ করে আপনার ইমেইল এড্রেস প্রদান করুন। (Please provide your email address.)',
+        message: 'Please enter your email address.',
       };
     }
 
@@ -447,7 +447,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!emailRegex.test(cleanEmail)) {
       return {
         success: false,
-        message: 'অনুগ্রহ করে একটি সঠিক ইমেইল এড্রেস ফরম্যাট দিন। (Please enter a valid email address format.)',
+        message: 'Please enter a valid email address.',
       };
     }
 
@@ -456,19 +456,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await sendPasswordResetEmail(auth, cleanEmail);
       return {
         success: true,
-        message: `ফায়ারবেস থেকে ${cleanEmail} ঠিকানায় পাসওয়ার্ড রিসেট লিংক সফলভাবে পাঠানো হয়েছে! অনুগ্রহ করে আপনার ইনবক্স অথবা স্প্যাম (Spam) ফোল্ডার চেক করুন। (Firebase password reset link dispatched to ${cleanEmail}. Please check your inbox or spam folder.)`,
+        message: 'Password reset email sent successfully. Please check your inbox and spam folder.',
       };
     } catch (e: any) {
-      let errorMsg = 'পাসওয়ার্ড রিসেট লিংক পাঠাতে সমস্যা হয়েছে। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।';
+      let errorMsg = 'Something went wrong. Please try again later.';
       if (e.code === 'auth/user-not-found') {
-        errorMsg = 'এই ইমেইল দিয়ে কোনো ফায়ারবেস অ্যাকাউন্ট পাওয়া যায়নি। অনুগ্রহ করে সঠিক ইমেইল দিন বা নতুন অ্যাকাউন্ট খুলুন। (No Firebase account found with this email.)';
+        errorMsg = 'No account was found with this email.';
       } else if (e.code === 'auth/invalid-email') {
-        errorMsg = 'ইমেইল এড্রেসটি সঠিক নয়। (Invalid email address format.)';
+        errorMsg = 'Invalid email address.';
       } else if (e.code === 'auth/too-many-requests') {
-        errorMsg = 'অতিরিক্ত অনুরোধ পাঠানো হয়েছে। সুরক্ষার জন্য কিছুক্ষণ পর আবার চেষ্টা করুন। (Too many attempts. Please try again later.)';
+        errorMsg = 'Too many attempts. Please wait and try again later.';
       } else if (e.code === 'auth/network-request-failed') {
-        errorMsg = 'নেটওয়ার্ক সমস্যা। অনুগ্রহ করে ইন্টারনেট সংযোগ চেক করুন। (Network request failed.)';
-      } else if (e.message) {
+        errorMsg = 'Unable to connect. Please check your internet connection and try again.';
+      } else if (e.message && !e.code) {
         errorMsg = e.message;
       }
       return {
